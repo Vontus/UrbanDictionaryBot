@@ -1,4 +1,4 @@
-import axios, { AxiosPromise } from "axios";
+import axios, { AxiosPromise, AxiosTransformer } from "axios";
 import { UrbanResponse } from "./urban-response";
 
 let urbanUrl: string = "http://api.urbandictionary.com/v0/";
@@ -9,7 +9,7 @@ export default {
       method: "GET",
       url: urbanUrl + "define",
       params: { term },
-      transformResponse: (r: UrbanResponse) => r
+      transformResponse: getAxiosTransformer()
     });
   },
 
@@ -17,7 +17,18 @@ export default {
     return axios.request<UrbanResponse>({
       method: "GET",
       url: urbanUrl + "random",
-      transformResponse: (r: UrbanResponse) => r
+      transformResponse: getAxiosTransformer()
     });
   }
 };
+
+function getAxiosTransformer (): AxiosTransformer[] {
+  let arr: AxiosTransformer[] = [];
+  arr.concat(
+    axios.defaults.transformResponse ? axios.defaults.transformResponse : [],
+    (r: any) => {
+      return new UrbanResponse(r);
+    },
+  )
+  return arr
+}
