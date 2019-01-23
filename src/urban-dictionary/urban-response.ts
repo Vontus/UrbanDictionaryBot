@@ -1,12 +1,5 @@
 import { UrbanDefinition } from "./urban-definition";
 
-export class UrbanResponse {
+export interface UrbanResponse {
   list: UrbanDefinition[];
-
-  constructor (jsonObject: any) {
-    this.list = [];
-    jsonObject.list.forEach((element: any) => {
-      this.list.push(new UrbanDefinition(element));
-    });
-  }
 }
