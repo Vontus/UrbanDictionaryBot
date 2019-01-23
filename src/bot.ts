@@ -18,8 +18,7 @@ export default {
     if (message.text) {
       ud.define(message.text)
         .then(({ data: response }: AxiosResponse<UrbanResponse>) => {
-          const encoded = ud.encode(response.list[0]);
-          bot.sendMessage(message.chat.id, templates.definition(encoded), { parse_mode: "HTML" });
+          bot.sendMessage(message.chat.id, templates.definition(response.list[0]), { parse_mode: "HTML" });
         })
     }
   }

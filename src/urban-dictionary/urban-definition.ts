@@ -1,4 +1,6 @@
-export interface UrbanDefinition {
+import encode from '../encoder'
+
+export class UrbanDefinition {
   defid: number;
   definition: string;
   permalink: string;
@@ -9,4 +11,17 @@ export interface UrbanDefinition {
   word: string;
   written_on: Date;
   example: string;
+
+  constructor (jsonObject: any) {
+    this.defid = jsonObject.defid;
+    this.definition = encode(jsonObject.definition);
+    this.permalink = encode(jsonObject.permalink);
+    this.thumbs_up = jsonObject.thumbs_up;
+    this.thumbs_down = jsonObject.thumbs_down;
+    this.sound_urls = jsonObject.sound_urls;
+    this.author = encode(jsonObject.author);
+    this.word = encode(jsonObject.word);
+    this.written_on = jsonObject.written_on;
+    this.example = encode(jsonObject.example);
+  }
 }
