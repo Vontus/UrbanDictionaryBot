@@ -9,4 +9,8 @@ export class UrbanResponse {
       this.list.push(new UrbanDefinition(element));
     });
   }
+  
+  hasDefinitions() {
+    return this.list && this.list.length > 0;
+  }
 }
