@@ -12,7 +12,7 @@ export default {
   start (token: string) {
     bot = new TelegramBot(token, { polling: true })
 
-    bot.onText(/.*/, (msg) => this.routeMessage(msg))
+    bot.on('message', (msg) => this.routeMessage(msg))
   },
 
   routeMessage (message: TelegramBot.Message) {
