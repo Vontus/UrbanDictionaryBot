@@ -22,7 +22,7 @@ export default {
   }
 };
 
-function getAxiosTransformer (): AxiosTransformer | AxiosTransformer[] | undefined {
+function getAxiosTransformer (): AxiosTransformer[] {
   let arr: AxiosTransformer[] = [];
   arr = arr.concat(
     axios.defaults.transformResponse ? axios.defaults.transformResponse : [],
