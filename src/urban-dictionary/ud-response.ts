@@ -1,12 +1,12 @@
-import { UrbanDefinition } from "./urban-definition";
+import { UdDefinition } from "./ud-definition";
 
-export class UrbanResponse {
-  list: UrbanDefinition[];
+export class UdResponse {
+  list: UdDefinition[];
 
   constructor (jsonObject: any) {
     this.list = [];
     jsonObject.list.forEach((element: any) => {
-      this.list.push(new UrbanDefinition(element));
+      this.list.push(new UdDefinition(element));
     });
   }
   

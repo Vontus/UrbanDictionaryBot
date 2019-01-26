@@ -1,7 +1,7 @@
 import * as TelegramBot from 'node-telegram-bot-api'
 import { AxiosResponse } from 'axios';
 
-import { UrbanResponse } from './urban-dictionary/urban-response';
+import { UdResponse } from './urban-dictionary/ud-response';
 import ud from './urban-dictionary'
 import templates from './templates'
 import util from './util'
@@ -58,7 +58,7 @@ export default {
       let text: string = message.text
 
       ud.define(text)
-      .then(({ data: response }: AxiosResponse<UrbanResponse>) => {
+      .then(({ data: response }: AxiosResponse<UdResponse>) => {
         if (response.hasDefinitions()) {
           bot.sendMessage(message.chat.id, templates.definition(response.list[0]), { parse_mode: "HTML", disable_web_page_preview: true })
         } else {

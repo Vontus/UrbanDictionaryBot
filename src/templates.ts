@@ -1,13 +1,13 @@
 import * as Fs from "fs";
 import * as replace from "string-template";
-import { UrbanDefinition } from "./urban-dictionary/urban-definition";
+import { UdDefinition } from "./urban-dictionary/ud-definition";
 
 let definitionTemplate = readTemplate("definition");
 let noResultTemplate = readTemplate("no-results");
 let arabicTemplate = readTemplate("arabic-response");
 
 export default {
-  definition(data: UrbanDefinition): string {
+  definition(data: UdDefinition): string {
     return replace(definitionTemplate, data);
   },
 
