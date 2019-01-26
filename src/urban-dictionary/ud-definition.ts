@@ -1,6 +1,10 @@
 import encode from '../encoder'
+import { UdWordLink } from './ud-word-link';
+import { TextDecoder } from 'util';
 
-export class UrbanDefinition {
+const wordLinkRegex = /\[([^\[\]]+)\]/g
+
+export class UdDefinition {
   defid: number;
   definition: string;
   permalink: string;
@@ -11,6 +15,8 @@ export class UrbanDefinition {
   word: string;
   written_on: Date;
   example: string;
+  definitionLinks: UdWordLink[];
+  exampleLinks: UdWordLink[];
 
   constructor (jsonObject: any) {
     this.defid = jsonObject.defid;
@@ -23,5 +29,21 @@ export class UrbanDefinition {
     this.word = encode(jsonObject.word);
     this.written_on = jsonObject.written_on;
     this.example = encode(jsonObject.example);
+
+    this.definitionLinks = this.findLinks(this.definition);
+    this.exampleLinks = this.findLinks(this.example);
+  }
+
+  findLinks(text: string): UdWordLink[] {
+    let links: UdWordLink[] = [];
+    let matches = text.match(wordLinkRegex);
+    if (matches) {
+      for (let i = 0; i < matches.length; i++) {
+        console.log(matches[i]);
+        links.push(new UdWordLink("test", 1));
+      }
+    }
+
+    return links;
   }
 }

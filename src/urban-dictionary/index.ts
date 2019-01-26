@@ -19,8 +19,9 @@ export default {
           params: { term },
           transformResponse: getAxiosTransformer()
         })
-          .then((response) => {
-            return resolve(response.data);
+          .then(({ data }) => {
+            cache.addResponse(data);
+            return resolve(data);
           })
           .catch((err) => {
             return reject(err);

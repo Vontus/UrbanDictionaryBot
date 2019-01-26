@@ -58,13 +58,13 @@ export default {
       let text: string = message.text
 
       ud.define(text)
-      .then(({ data: response }: AxiosResponse<UdResponse>) => {
-        if (response.hasDefinitions()) {
-          bot.sendMessage(message.chat.id, templates.definition(response.list[0]), { parse_mode: "HTML", disable_web_page_preview: true })
-        } else {
-          bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: "HTML" })
-        }
-      })
+        .then((response: UdResponse) => {
+          if (response.hasDefinitions()) {
+            bot.sendMessage(message.chat.id, templates.definition(response.list[0]), { parse_mode: "HTML", disable_web_page_preview: true })
+          } else {
+            bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: "HTML" })
+          }
+        })
     } else {
       console.error('Message has no text')
     }
