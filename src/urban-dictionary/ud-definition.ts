@@ -1,12 +1,13 @@
 import encode from '../encoder'
 import { UdWordLink } from './ud-word-link';
-import { TextDecoder } from 'util';
+import formatter from '../formatter';
 
 const wordLinkRegex = /\[([^\[\]]+)\]/g
 
 export class UdDefinition {
   defid: number;
   definition: string;
+  formattedDefinition: string;
   permalink: string;
   thumbs_up: number;
   thumbs_down: number;
@@ -15,8 +16,7 @@ export class UdDefinition {
   word: string;
   written_on: Date;
   example: string;
-  definitionLinks: UdWordLink[];
-  exampleLinks: UdWordLink[];
+  formattedExample: string;
 
   constructor (jsonObject: any) {
     this.defid = jsonObject.defid;
@@ -30,8 +30,8 @@ export class UdDefinition {
     this.written_on = jsonObject.written_on;
     this.example = encode(jsonObject.example);
 
-    this.definitionLinks = this.findLinks(this.definition);
-    this.exampleLinks = this.findLinks(this.example);
+    this.formattedDefinition = this.formatLinks(this.definition);
+    this.formattedExample = this.formatLinks(this.example);
   }
 
   findLinks(text: string): UdWordLink[] {
@@ -44,5 +44,12 @@ export class UdDefinition {
     }
 
     return links;
+  }
+
+  formatLinks(text: string): string {
+    return text.replace(wordLinkRegex, (match) => {
+      let word = match.slice(1, -1)
+      return formatter.link(word, formatter.startUrl(word));
+    })
   }
 }

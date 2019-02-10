@@ -6,6 +6,10 @@ import templates from './templates'
 import util from './util'
 import logger from './logger'
 import udKeyboards, { UdButtonResponse } from './ud-keyboards';
+import { BotCommand } from './bot-command';
+import { UdDefinition } from './urban-dictionary/ud-definition';
+import formatter from './formatter';
+import urbanDictionary from './urban-dictionary';
 
 let bot: TelegramBot
 let logChatId: number
@@ -60,7 +64,7 @@ export default {
     }
 
     if (text[0] === "/") {
-      this.handleCommand(message)
+      this.handleCommand(new BotCommand(message))
       return
     }
 
@@ -75,13 +79,7 @@ export default {
       ud.define(text)
         .then((response: UdResponse) => {
           if (response.hasDefinitions()) {
-            let def = response.list[0]
-            let msgOptions: TelegramBot.SendMessageOptions = {
-              parse_mode: "HTML",
-              disable_web_page_preview: true,
-              reply_markup: udKeyboards.buildFromDefinition({ definitions: response.list, position: 0 })
-            }
-            bot.sendMessage(message.chat.id, templates.definition(def), msgOptions)
+            this.sendDefinition(message.chat, response.list, 0)
           } else {
             bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: "HTML" })
           }
@@ -97,12 +95,21 @@ export default {
     }
   },
 
-  handleCommand (message: TelegramBot.Message) {
-    if (message.from && message.from.id == ownerId) {
+  async handleCommand (command: BotCommand) {
+    let message = command.message;
+    if (message.from && message.from.id === ownerId) {
       this.handleAdminCommand(message);
     }
 
-    logger.log("handling command...")
+    if (command.label === "start") {
+      if (command.args.length > 0) {
+        let word = formatter.fromB64(command.args[0])
+        let defs = (await urbanDictionary.define(word)).list
+        this.sendDefinition(message.chat, defs, 0)
+      } else {
+        bot.sendMessage(message.chat.id, "Type the word or expression you want to search.")
+      }
+    }
   },
 
   handleAdminCommand (message: TelegramBot.Message) {
@@ -151,6 +158,15 @@ export default {
     }
 
     bot.editMessageText(templates.definition(def), editMessOptions)
+  },
+  
+  sendDefinition (chat: TelegramBot.Chat, defs: UdDefinition[], pos: number) {
+    let msgOptions: TelegramBot.SendMessageOptions = {
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+      reply_markup: udKeyboards.buildFromDefinition({ definitions: defs, position: 0 })
+    }
+    bot.sendMessage(chat.id, templates.definition(defs[pos]), msgOptions)
   },
 
   sendArabicResponse (chat: TelegramBot.Chat) {
