@@ -1,18 +1,18 @@
-import { UdResponse } from "./ud-response";
+import { UdDefinition } from "./ud-definition";
 
 interface IDictionary {
-  [index: string]: UdResponse;
+  [index: string]: UdDefinition[];
 }
 
 let cache = {} as IDictionary
 
 export default {
-  addResponse (response: UdResponse) {
-    let word: string = response.list[0].word
-    cache[normalizeWord(word)] = response
+  addDefinitions (definitions: UdDefinition[]) {
+    let word: string = definitions[0].word
+    cache[normalizeWord(word)] = definitions
   },
 
-  getResponse (word: string) {
+  getDefinitions (word: string) {
     return cache[normalizeWord(word)]
   }
 }

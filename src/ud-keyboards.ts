@@ -1,9 +1,6 @@
 import { UdDefinition } from "./urban-dictionary/ud-definition";
-import { InlineKeyboardButton, CallbackQuery, InlineKeyboardMarkup } from "node-telegram-bot-api";
+import { CallbackQuery, InlineKeyboardMarkup } from "node-telegram-bot-api";
 import UrbanApi from "./urban-dictionary";
-
-const CALLBACK_PREV = 'prev'
-const CALLBACK_NEXT = 'next'
 
 let channelLink: string;
 
@@ -52,7 +49,7 @@ export default {
       let definitions = await UrbanApi.define(term)
 
       return {
-        definitions: definitions.list,
+        definitions: definitions,
         position: pos
       }
     }

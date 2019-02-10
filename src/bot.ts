@@ -1,11 +1,10 @@
 import * as TelegramBot from 'node-telegram-bot-api'
 
-import { UdResponse } from './urban-dictionary/ud-response';
 import ud from './urban-dictionary'
 import templates from './templates'
 import util from './util'
 import logger from './logger'
-import udKeyboards, { UdButtonResponse } from './ud-keyboards';
+import udKeyboards from './ud-keyboards';
 import { BotCommand } from './bot-command';
 import { UdDefinition } from './urban-dictionary/ud-definition';
 import formatter from './formatter';
@@ -77,9 +76,9 @@ export default {
       let text: string = message.text
 
       ud.define(text)
-        .then((response: UdResponse) => {
-          if (response.hasDefinitions()) {
-            this.sendDefinition(message.chat, response.list, 0)
+        .then((defs: UdDefinition[]) => {
+          if (defs && defs.length > 0) {
+            this.sendDefinition(message.chat, defs, 0)
           } else {
             bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: "HTML" })
           }
@@ -104,7 +103,7 @@ export default {
     if (command.label === "start") {
       if (command.args.length > 0) {
         let word = formatter.fromB64(command.args[0])
-        let defs = (await urbanDictionary.define(word)).list
+        let defs = (await urbanDictionary.define(word))
         this.sendDefinition(message.chat, defs, 0)
       } else {
         bot.sendMessage(message.chat.id, "Type the word or expression you want to search.")
