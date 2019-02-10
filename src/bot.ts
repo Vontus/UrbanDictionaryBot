@@ -1,14 +1,13 @@
 import * as TelegramBot from 'node-telegram-bot-api'
 
-import ud from './urban-dictionary'
+import UrbanApi from './urban-api'
 import templates from './templates'
 import util from './util'
 import logger from './logger'
 import udKeyboards from './ud-keyboards';
 import { BotCommand } from './bot-command';
-import { UdDefinition } from './urban-dictionary/ud-definition';
+import { UdDefinition } from './urban-api/ud-definition';
 import formatter from './formatter';
-import urbanDictionary from './urban-dictionary';
 
 let bot: TelegramBot
 let logChatId: number
@@ -75,7 +74,7 @@ export default {
     if (message.text) {
       let text: string = message.text
 
-      ud.define(text)
+      UrbanApi.define(text)
         .then((defs: UdDefinition[]) => {
           if (defs && defs.length > 0) {
             this.sendDefinition(message.chat, defs, 0)
@@ -103,7 +102,7 @@ export default {
     if (command.label === "start") {
       if (command.args.length > 0) {
         let word = formatter.fromB64(command.args[0])
-        let defs = (await urbanDictionary.define(word))
+        let defs = (await UrbanApi.define(word))
         this.sendDefinition(message.chat, defs, 0)
       } else {
         bot.sendMessage(message.chat.id, "Type the word or expression you want to search.")

@@ -1,6 +1,6 @@
-import { UdDefinition } from "./urban-dictionary/ud-definition";
+import { UdDefinition } from "./urban-api/ud-definition";
 import { CallbackQuery, InlineKeyboardMarkup } from "node-telegram-bot-api";
-import UrbanApi from "./urban-dictionary";
+import UrbanApi from "./urban-api";
 
 let channelLink: string;
 

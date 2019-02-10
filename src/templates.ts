@@ -1,6 +1,6 @@
 import * as Fs from "fs";
 import * as replace from "string-template";
-import { UdDefinition } from "./urban-dictionary/ud-definition";
+import { UdDefinition } from "./urban-api/ud-definition";
 
 let definitionTemplate = readTemplate("definition");
 let noResultTemplate = readTemplate("no-results");
