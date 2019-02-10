@@ -1,5 +1,4 @@
 import bot from './bot'
-require('dotenv').config()
 
 let token: string = process.env.BOT_TOKEN || ''
 
