@@ -9,6 +9,7 @@ import logger from './logger'
 let bot: TelegramBot
 let logChatId: number
 let ownerId: number
+let userBot: TelegramBot.User;
 
 export default {
   start (token: string) {
@@ -24,6 +25,9 @@ export default {
 
     bot.on('message', (msg) => this.routeMessage(msg))
     bot.on('error', (error) => this.handleError(error))
+
+    bot.getMe()
+      .then(response => userBot = response)
   },
 
   routeMessage (message: TelegramBot.Message) {
@@ -35,8 +39,8 @@ export default {
 
     if (message.chat.type == "private") {
       this.handlePrivateChat(message)
-    } else {
-      logger.error('chat type: ', message.chat.type)
+    } else if (message.left_chat_member && message.left_chat_member.id !== userBot.id) {
+      bot.leaveChat(message.chat.id)
     }
   },
 
