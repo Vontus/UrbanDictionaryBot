@@ -1,33 +1,42 @@
 import * as TelegramBot from 'node-telegram-bot-api'
-import { AxiosResponse } from 'axios';
 
 import { UdResponse } from './urban-dictionary/ud-response';
 import ud from './urban-dictionary'
 import templates from './templates'
 import util from './util'
+import logger from './logger'
 
-let bot : TelegramBot
+let bot: TelegramBot
+let logChatId: number
+let ownerId: number
 
 export default {
   start (token: string) {
+    if (process.env.LOG_CHAT_ID) {
+      logChatId = parseInt(process.env.LOG_CHAT_ID);
+    }
+
+    if (process.env.OWNER_ID) {
+      ownerId = parseInt(process.env.OWNER_ID)
+    }
+
     bot = new TelegramBot(token, { polling: true })
 
     bot.on('message', (msg) => this.routeMessage(msg))
+    bot.on('error', (error) => this.handleError(error))
   },
 
   routeMessage (message: TelegramBot.Message) {
-    if (process.env.LOG_CHAT_ID) {
-      let logChatId = parseInt(process.env.LOG_CHAT_ID);
-      if (message.chat.id === logChatId) {
-        this.handleLogChat(message)
-        return
-      }
+    logger.log(message)
+    if (message.chat.id === logChatId) {
+      this.handleLogChat(message)
+      return
     }
 
     if (message.chat.type == "private") {
       this.handlePrivateChat(message)
     } else {
-      console.error('chat type: ', message.chat.type)
+      logger.error('chat type: ', message.chat.type)
     }
   },
 
@@ -66,16 +75,42 @@ export default {
           }
         })
     } else {
-      console.error('Message has no text')
+      logger.error('Message has no text')
     }
   },
 
   handleLogChat (message: TelegramBot.Message) {
-    console.log('log message', message.text)
+    if (message.text && message.text.startsWith("/")) {
+      this.handleAdminCommand(message);
+    }
   },
 
   handleCommand (message: TelegramBot.Message) {
-    bot.sendMessage(message.chat.id, "handling command...")
+    if (message.from && message.from.id == ownerId) {
+      this.handleAdminCommand(message);
+    }
+
+    logger.log("handling command...")
+  },
+
+  handleAdminCommand (message: TelegramBot.Message) {
+    if (message.text && message.text.startsWith("/eval")) {
+      // split only by first space
+      let toExec = message.text.split(/ (.+)/g)[1].replace(/\n/g, " ");
+      let result;
+      try {
+        result = eval(toExec);
+      } catch (error) {
+        result = error;
+      }
+      if (result) {
+        let resultStr = result.toString()
+        logger.log('result: ', resultStr);
+        if (resultStr.length < 500) {
+          bot.sendMessage(message.chat.id, resultStr);
+        }
+      }
+    }
   },
 
   sendArabicResponse (chat: TelegramBot.Chat) {
@@ -84,5 +119,10 @@ export default {
 
   sendHelp (chat: TelegramBot.Chat) {
     bot.sendMessage(chat.id, "sending help...")
+  },
+
+  handleError (error: any) {
+    logger.error("Error: ", error)
+    bot.sendMessage(logChatId, error.toString())
   }
 }

@@ -39,7 +39,6 @@ export class UdDefinition {
     let matches = text.match(wordLinkRegex);
     if (matches) {
       for (let i = 0; i < matches.length; i++) {
-        console.log(matches[i]);
         links.push(new UdWordLink("test", 1));
       }
     }

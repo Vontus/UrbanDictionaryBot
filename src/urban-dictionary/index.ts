@@ -10,9 +10,11 @@ export default {
     let cacheResponse = cache.getResponse(term);
 
     if (cacheResponse) {
+      console.debug('serving from cache...');
       return Promise.resolve(cacheResponse);
     } else {
       return new Promise((resolve, reject) => {
+        console.debug('asking ud...');
         axios.request<UdResponse>({
           method: "GET",
           url: urbanUrl + "define",

@@ -20,6 +20,7 @@
   "author": "Vontus",
   "license": "MIT",
   "devDependencies": {
+    "@types/debug": "^4.1.0",
     "@types/jest": "^23.3.10",
     "@types/node": "^10.12.18",
     "@types/node-telegram-bot-api": "^0.30.4",
@@ -38,6 +39,7 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "debug": "^4.1.1",
     "dotenv": "^6.2.0",
     "node-telegram-bot-api": "^0.30.0",
     "string-template": "^1.0.0"
