@@ -5,6 +5,7 @@ import ud from './urban-dictionary'
 import templates from './templates'
 import util from './util'
 import logger from './logger'
+import udKeyboards, { UdButtonResponse } from './ud-keyboards';
 
 let bot: TelegramBot
 let logChatId: number
@@ -25,6 +26,7 @@ export default {
 
     bot.on('message', (msg) => this.routeMessage(msg))
     bot.on('error', (error) => this.handleError(error))
+    bot.on('callback_query', callbackQuery => this.handleCallbackQuery(callbackQuery))
 
     bot.getMe()
       .then(response => userBot = response)
@@ -73,7 +75,13 @@ export default {
       ud.define(text)
         .then((response: UdResponse) => {
           if (response.hasDefinitions()) {
-            bot.sendMessage(message.chat.id, templates.definition(response.list[0]), { parse_mode: "HTML", disable_web_page_preview: true })
+            let def = response.list[0]
+            let msgOptions: TelegramBot.SendMessageOptions = {
+              parse_mode: "HTML",
+              disable_web_page_preview: true,
+              reply_markup: udKeyboards.buildFromDefinition({ definitions: response.list, position: 0 })
+            }
+            bot.sendMessage(message.chat.id, templates.definition(def), msgOptions)
           } else {
             bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: "HTML" })
           }
@@ -115,6 +123,34 @@ export default {
         }
       }
     }
+  },
+
+  async handleCallbackQuery (callbackQuery: TelegramBot.CallbackQuery) {
+    if (!callbackQuery.message) {
+      logger.error('No message received from callbackQuery')
+      return
+    }
+
+    if (callbackQuery.data === 'ignore') {
+      bot.answerCallbackQuery({
+        callback_query_id: callbackQuery.id
+      })
+      return
+    }
+
+    let buttonResponse = await udKeyboards.parseButtonClick(callbackQuery);
+    let def = buttonResponse.definitions[buttonResponse.position];
+    let inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse)
+
+    let editMessOptions: TelegramBot.EditMessageTextOptions = {
+      chat_id: callbackQuery.message.chat.id,
+      disable_web_page_preview: true,
+      message_id: callbackQuery.message.message_id,
+      parse_mode: 'HTML',
+      reply_markup: inlineKeyboard
+    }
+
+    bot.editMessageText(templates.definition(def), editMessOptions)
   },
 
   sendArabicResponse (chat: TelegramBot.Chat) {
