@@ -89,14 +89,14 @@ export default {
 
   handleLogChat (message: TelegramBot.Message) {
     if (message.text && message.text.startsWith("/")) {
-      this.handleAdminCommand(message);
+      this.handleAdminCommand(new BotCommand(message));
     }
   },
 
   async handleCommand (command: BotCommand) {
     let message = command.message;
     if (message.from && message.from.id === ownerId) {
-      this.handleAdminCommand(message);
+      this.handleAdminCommand(command);
     }
 
     if (command.label === "start") {
@@ -110,10 +110,9 @@ export default {
     }
   },
 
-  handleAdminCommand (message: TelegramBot.Message) {
-    if (message.text && message.text.startsWith("/eval")) {
-      // split only by first space
-      let toExec = message.text.split(/ (.+)/g)[1].replace(/\n/g, " ");
+  handleAdminCommand (command: BotCommand) {
+    if (command.label === "eval") {
+      let toExec = command.fullArgs;
       let result;
       try {
         result = eval(toExec);
@@ -124,7 +123,7 @@ export default {
         let resultStr = result.toString()
         logger.log('result: ', resultStr);
         if (resultStr.length < 500) {
-          bot.sendMessage(message.chat.id, resultStr);
+          bot.sendMessage(command.message.chat.id, resultStr);
         }
       }
     }
