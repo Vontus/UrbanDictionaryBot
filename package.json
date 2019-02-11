@@ -22,6 +22,7 @@
   "devDependencies": {
     "@types/debug": "^4.1.0",
     "@types/jest": "^23.3.10",
+    "@types/mongoose": "^5.3.12",
     "@types/node": "^10.12.18",
     "@types/node-telegram-bot-api": "^0.30.4",
     "@types/string-template": "^1.0.2",
@@ -41,6 +42,7 @@
     "axios": "^0.18.0",
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",
+    "mongoose": "^5.4.11",
     "node-telegram-bot-api": "^0.30.0",
     "string-template": "^1.0.0"
   },
