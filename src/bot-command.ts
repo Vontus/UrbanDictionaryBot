@@ -4,6 +4,7 @@ import logger from "./logger";
 export class BotCommand {
   label: string;
   args: string[];
+  fullArgs: string;
   message: Message;
 
   constructor (mess: Message) {
@@ -12,10 +13,11 @@ export class BotCommand {
       throw new Error("Invalid command message")
     }
 
-    let split = mess.text.split(" ");
+    let txt = mess.text
 
-    this.label = split[0].slice(1);
-    this.args = split.slice(1)
+    this.label = txt.substr(0, txt.indexOf(' ')).toLowerCase();
+    this.fullArgs = txt.substr(txt.indexOf(' ') +1);
+    this.args = this.fullArgs.split(' ')
     this.message = mess;
   }
 }
