@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import * as mongoose from 'mongoose'
 import logger from '../logger'
 import { Message as TgMessage } from 'node-telegram-bot-api'
 
