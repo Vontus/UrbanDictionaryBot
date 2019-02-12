@@ -1,5 +1,6 @@
 import * as TelegramBot from 'node-telegram-bot-api'
 
+import db from './db'
 import UrbanApi from './urban-api'
 import templates from './templates'
 import util from './util'
@@ -34,7 +35,7 @@ export default {
       .then(response => userBot = response)
   },
 
-  routeMessage (message: TelegramBot.Message) {
+  async routeMessage (message: TelegramBot.Message) {
     logger.log(message)
     if (message.chat.id === logChatId) {
       this.handleLogChat(message)

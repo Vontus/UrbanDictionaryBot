@@ -1,5 +1,8 @@
-import mongoose from 'mongoose'
+const mongoose = require('mongoose')
 import logger from '../logger'
+import { Message as TgMessage } from 'node-telegram-bot-api'
+
+import messageSchema from './schemas/message'
 
 let mongoUrl: string
 
@@ -12,7 +15,14 @@ if (process.env.MONGO_URL) {
 
 mongoose.connect(mongoUrl, {useNewUrlParser: true});
 
-const Cat = mongoose.model('Cat', new mongoose.Schema({ name: String }));
+const MessageModel = mongoose.model('Message', messageSchema);
 
-const kitty = new Cat({ name: 'Zildjian' });
-kitty.save().then(() => console.log('meow'));
+// const kitty = new Cat({ name: 'Zildjian' });
+// kitty.save().then(() => console.log('meow'));
+
+export default {
+  saveMessage (tgMsg: TgMessage) {
+    const message = new MessageModel({ text: tgMsg.text })
+    message.save().then(() => console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'))
+  }
+}
