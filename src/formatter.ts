@@ -8,8 +8,23 @@ if (process.env.BOT_USERNAME) {
 }
 
 export default {
-  bold (text: string) {
-    return `<b>${text}</b>`;
+  ITALIC_OPEN_TAG: '<i>',
+  ITALIC_CLOSE_TAG: '</i>',
+  BOLD_OPEN_TAG: '<b>',
+  BOLD_CLOSE_TAG: '</b>',
+  CODE_OPEN_TAG: '<code>',
+  CODE_CLOSE_TAG: '</code>',
+
+  italic (text: string): string {
+    return this.ITALIC_OPEN_TAG + text + this.ITALIC_CLOSE_TAG;
+  },
+
+  bold (text: string): string {
+    return this.BOLD_OPEN_TAG + text + this.BOLD_CLOSE_TAG;
+  },
+
+  code (text: string) {
+    return this.CODE_OPEN_TAG + text + this.CODE_CLOSE_TAG;
   },
 
   link (description: string, url: string) {
@@ -18,10 +33,6 @@ export default {
 
   mention (user: User, description?: string) {
     return this.link(description || user.first_name, `tg://user?id=${user.id}`);
-  },
-
-  code (text: string) {
-    return `<code>${text}</code>`;
   },
 
   startUrl(query: string): string {
