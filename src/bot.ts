@@ -66,10 +66,10 @@ export default {
     if (message.text) {
       let text: string = message.text
 
-      UrbanApi.define(text)
+      UrbanApi.defineTerm(text)
         .then((defs: UdDefinition[]) => {
           if (defs && defs.length > 0) {
-            this.sendDefinition(message.chat, defs, 0)
+            this.sendDefinition(message.chat.id, defs, 0)
           } else {
             bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: "HTML" })
           }
@@ -94,8 +94,8 @@ export default {
     if (command.label === "start") {
       if (command.args.length > 0) {
         let word = formatter.fromB64(command.args[0])
-        let defs = (await UrbanApi.define(word))
-        this.sendDefinition(message.chat, defs, 0)
+        let defs = (await UrbanApi.defineTerm(word))
+        this.sendDefinition(message.chat.id, defs, 0)
       } else {
         bot.sendMessage(message.chat.id, "Type the word or expression you want to search.")
       }
@@ -149,13 +149,13 @@ export default {
     bot.editMessageText(templates.definition(def), editMessOptions)
   },
   
-  sendDefinition (chat: TelegramBot.Chat, defs: UdDefinition[], pos: number) {
+  sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean) {
     let msgOptions: TelegramBot.SendMessageOptions = {
       parse_mode: "HTML",
       disable_web_page_preview: true,
-      reply_markup: udKeyboards.buildFromDefinition({ definitions: defs, position: 0 })
+      reply_markup: keyboard ? udKeyboards.buildFromDefinition({ definitions: defs, position: 0 }) : undefined
     }
-    bot.sendMessage(chat.id, templates.definition(defs[pos]), msgOptions)
+    bot.sendMessage(chatId, templates.definition(defs[pos]), msgOptions)
   },
 
   sendArabicResponse (chat: TelegramBot.Chat) {
