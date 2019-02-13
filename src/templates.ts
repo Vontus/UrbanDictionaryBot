@@ -3,12 +3,17 @@ import * as replace from "string-template";
 import { UdDefinition } from "./urban-api/ud-definition";
 
 let definitionTemplate = readTemplate("definition");
+let channelPostTemplate = readTemplate("channel-post");
 let noResultTemplate = readTemplate("no-results");
 let arabicTemplate = readTemplate("arabic-response");
 
 export default {
   definition(data: UdDefinition): string {
     return replace(definitionTemplate, data);
+  },
+
+  channelPost(data: UdDefinition): string {
+    return replace(channelPostTemplate, data);
   },
 
   noResults(word: string): string {

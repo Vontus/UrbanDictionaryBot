@@ -1,0 +1,9 @@
+<b>{word}</b> by <a href="http://www.urbandictionary.com/author.php?author={author}">{author}</a>
+
+ℹ️ <b>Description</b>
+{formattedDefinition}
+
+📌 <b>Examples</b>
+{formattedExample}
+
+#WordOfTheDay - <a href="{permalink}">Source</a>
