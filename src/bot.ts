@@ -9,15 +9,15 @@ import { BotCommand } from './bot-command';
 import { UdDefinition } from './urban-api/ud-definition';
 import formatter from './formatter';
 
-let bot: TelegramBot
+let botToken: string = util.getRequiredEnvVar("BOT_TOKEN")
 let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID) : null
 let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID) : null
+
+let bot: TelegramBot = new TelegramBot(botToken, { polling: true })
 let userBot: TelegramBot.User;
 
 export default {
-  start (token: string) {
-    bot = new TelegramBot(token, { polling: true })
-
+  start () {
     bot.on('message', (msg) => this.routeMessage(msg))
     bot.on('error', (error) => this.handleError(error))
     bot.on('callback_query', callbackQuery => this.handleCallbackQuery(callbackQuery))
