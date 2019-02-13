@@ -17,6 +17,8 @@ let bot: TelegramBot = new TelegramBot(botToken, { polling: true })
 let userBot: TelegramBot.User;
 
 export default {
+  bot,
+
   start () {
     bot.on('message', (msg) => this.routeMessage(msg))
     bot.on('error', (error) => this.handleError(error))
@@ -69,7 +71,7 @@ export default {
       UrbanApi.defineTerm(text)
         .then((defs: UdDefinition[]) => {
           if (defs && defs.length > 0) {
-            this.sendDefinition(message.chat.id, defs, 0)
+            this.sendDefinition(message.chat.id, defs, 0, true)
           } else {
             bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: "HTML" })
           }
@@ -95,7 +97,7 @@ export default {
       if (command.args.length > 0) {
         let word = formatter.fromB64(command.args[0])
         let defs = (await UrbanApi.defineTerm(word))
-        this.sendDefinition(message.chat.id, defs, 0)
+        this.sendDefinition(message.chat.id, defs, 0, true)
       } else {
         bot.sendMessage(message.chat.id, "Type the word or expression you want to search.")
       }

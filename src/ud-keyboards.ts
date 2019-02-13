@@ -46,7 +46,7 @@ export default {
       let data = callbackQuery.data.split('_')
       let term = data[0]
       let pos: number = parseInt(data[1])
-      let definitions = await UrbanApi.define(term)
+      let definitions = await UrbanApi.defineTerm(term)
 
       return {
         definitions: definitions,
