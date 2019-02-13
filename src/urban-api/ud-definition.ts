@@ -31,7 +31,7 @@ export class UdDefinition {
     this.example = encode(jsonObject.example);
 
     this.formattedDefinition = this.formatLinks(this.definition);
-    this.formattedExample = this.formatLinks(this.example);
+    this.formattedExample = formatter.italic(this.formatLinks(this.example, formatter.ITALIC_CLOSE_TAG, formatter.ITALIC_OPEN_TAG));
   }
 
   findLinks(text: string): UdWordLink[] {
@@ -46,10 +46,12 @@ export class UdDefinition {
     return links;
   }
 
-  formatLinks(text: string): string {
+  formatLinks(text: string, prefix?: string, suffix?: string): string {
     return text.replace(wordLinkRegex, (match) => {
       let word = match.slice(1, -1)
-      return formatter.link(word, formatter.startUrl(word));
+      return (prefix ? prefix : '') +
+        formatter.link(word, formatter.startUrl(word)) +
+        (suffix ? suffix : '')
     })
   }
 }
