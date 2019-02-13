@@ -1,29 +1,21 @@
-import axios from 'axios'
-import * as $ from 'cheerio'
+import scraper from './scraper'
+import * as scheduler from 'node-schedule'
 import { UdChannelDef } from './ud-channel-def';
+import logger from '../logger';
+import bot from '../bot';
 
-const url = "https://www.urbandictionary.com/"
-const DEFAULT_PAGE = 1
+let channelPostTime = process.env.CHANNEL_POST_TIME
 
 export default {
-  async getPageWords(page?: number): Promise<UdChannelDef[]> {
-    page = page || DEFAULT_PAGE;
-
-    const html = (await axios.request<string>({
-      method: "GET",
-      url: url,
-      params: { page }
-    })).data
-
-    let defs: UdChannelDef[] = []
-
-    $('.def-panel', html).each((_index, elem) => {
-      let defid = $(elem).data('defid')
-      let gif = $(elem).find('.gif img').attr('src')
-
-      defs.push(new UdChannelDef(defid, gif))
-    })
-
-    return defs;
+  init () {
+    if (channelPostTime) {
+      logger.log(`Scheduling channel posts at ${channelPostTime} ...`)
+      scheduler.scheduleJob(channelPostTime, async () => {
+        let defs: UdChannelDef[] = await scraper.getPageDefinitions()
+        logger.debug('scraped definitions: ', defs)
+      })
+    } else {
+      logger.warn("Couldn't schedule channel posts, CHANNEL_POST_TIME is not defined")
+    }
   }
 }

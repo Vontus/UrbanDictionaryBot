@@ -1,6 +1,5 @@
 import * as TelegramBot from 'node-telegram-bot-api'
 
-import db from './db'
 import UrbanApi from './urban-api'
 import templates from './templates'
 import util from './util'
@@ -11,20 +10,12 @@ import { UdDefinition } from './urban-api/ud-definition';
 import formatter from './formatter';
 
 let bot: TelegramBot
-let logChatId: number
-let ownerId: number
+let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID) : null
+let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID) : null
 let userBot: TelegramBot.User;
 
 export default {
   start (token: string) {
-    if (process.env.LOG_CHAT_ID) {
-      logChatId = parseInt(process.env.LOG_CHAT_ID);
-    }
-
-    if (process.env.OWNER_ID) {
-      ownerId = parseInt(process.env.OWNER_ID)
-    }
-
     bot = new TelegramBot(token, { polling: true })
 
     bot.on('message', (msg) => this.routeMessage(msg))
@@ -177,6 +168,8 @@ export default {
 
   handleError (error: any) {
     logger.error("Error: ", error)
-    bot.sendMessage(logChatId, error.toString())
+    if (logChatId) {
+      bot.sendMessage(logChatId, error.toString())
+    }
   }
 }

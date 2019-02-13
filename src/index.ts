@@ -1,14 +1,16 @@
 import bot from './bot'
+import udChannel from './ud-channel'
+import logger from './logger';
+import util from './util'
 
-let token: string = process.env.BOT_TOKEN || ''
+logger.log("Starting...")
 
-if (!token) {
-  console.error("BOT_TOKEN is not set in .env")
-  process.exit()
-}
+let token: string = util.getRequiredEnvVar("BOT_TOKEN")
 
 const start = async () => {
   bot.start(token)
+
+  udChannel.init()
 }
 
 start()
