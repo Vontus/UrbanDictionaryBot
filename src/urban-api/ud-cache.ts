@@ -1,7 +1,7 @@
-import { UdDefinition } from "./ud-definition";
+import { UdDefinition } from './ud-definition'
 
 interface IDictionary {
-  [index: string]: UdDefinition[];
+  [index: string]: UdDefinition[]
 }
 
 let cache = {} as IDictionary
@@ -17,6 +17,6 @@ export default {
   }
 }
 
-function normalizeWord (string: string): string {
-  return string.toLowerCase()
+function normalizeWord (word: string): string {
+  return word.toLowerCase()
 }

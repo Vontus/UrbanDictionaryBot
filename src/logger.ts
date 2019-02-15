@@ -1,4 +1,4 @@
-import Debug from 'debug';
+import Debug from 'debug'
 let log = Debug('udbot')
 let debug = log.extend('debug')
 let warn = log.extend('warn')

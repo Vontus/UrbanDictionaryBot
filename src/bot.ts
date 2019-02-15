@@ -4,17 +4,17 @@ import UrbanApi from './urban-api'
 import templates from './templates'
 import util from './util'
 import logger from './logger'
-import udKeyboards from './ud-keyboards';
-import { BotCommand } from './bot-command';
-import { UdDefinition } from './urban-api/ud-definition';
-import formatter from './formatter';
+import udKeyboards from './ud-keyboards'
+import { BotCommand } from './bot-command'
+import { UdDefinition } from './urban-api/ud-definition'
+import formatter from './formatter'
 
-let botToken: string = util.getRequiredEnvVar("BOT_TOKEN")
-let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID) : null
-let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID) : null
+let botToken: string = util.getRequiredEnvVar('BOT_TOKEN')
+let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
+let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID, 10) : null
 
 let bot: TelegramBot = new TelegramBot(botToken, { polling: true })
-let userBot: TelegramBot.User;
+let userBot: TelegramBot.User
 
 export default {
   bot,
@@ -35,7 +35,7 @@ export default {
       return
     }
 
-    if (message.chat.type == "private") {
+    if (message.chat.type === 'private') {
       this.handlePrivateChat(message)
     } else if (message.left_chat_member && message.left_chat_member.id !== userBot.id) {
       bot.leaveChat(message.chat.id)
@@ -45,17 +45,17 @@ export default {
   handlePrivateChat (message: TelegramBot.Message) {
     if (!message.text) {
       this.sendHelp(message.chat)
-      return;
+      return
     }
-    
-    let text : string = message.text
+
+    let text: string = message.text
 
     if (util.isArabic(text)) {
       this.sendArabicResponse(message.chat)
       return
     }
 
-    if (text[0] === "/") {
+    if (text[0] === '/') {
       this.handleCommand(new BotCommand(message))
       return
     }
@@ -73,7 +73,7 @@ export default {
           if (defs && defs.length > 0) {
             this.sendDefinition(message.chat.id, defs, 0, true)
           } else {
-            bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: "HTML" })
+            bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: 'HTML' })
           }
         })
     } else {
@@ -82,42 +82,43 @@ export default {
   },
 
   handleLogChat (message: TelegramBot.Message) {
-    if (message.text && message.text.startsWith("/")) {
-      this.handleAdminCommand(new BotCommand(message));
+    if (message.text && message.text.startsWith('/')) {
+      this.handleAdminCommand(new BotCommand(message))
     }
   },
 
   async handleCommand (command: BotCommand) {
-    let message = command.message;
+    let message = command.message
     if (message.from && message.from.id === ownerId) {
-      this.handleAdminCommand(command);
+      this.handleAdminCommand(command)
     }
 
-    if (command.label === "start") {
+    if (command.label === 'start') {
       if (command.args.length > 0) {
         let word = formatter.fromB64(command.args[0])
         let defs = (await UrbanApi.defineTerm(word))
         this.sendDefinition(message.chat.id, defs, 0, true)
       } else {
-        bot.sendMessage(message.chat.id, "Type the word or expression you want to search.")
+        bot.sendMessage(message.chat.id, 'Type the word or expression you want to search.')
       }
     }
   },
 
   handleAdminCommand (command: BotCommand) {
-    if (command.label === "eval") {
-      let toExec = command.fullArgs;
-      let result;
+    if (command.label === 'eval') {
+      let toExec = command.fullArgs
+      let result
       try {
-        result = eval(toExec);
+        // tslint:disable-next-line:no-eval
+        result = eval(toExec)
       } catch (error) {
-        result = error;
+        result = error
       }
       if (result) {
         let resultStr = result.toString()
-        logger.log('result: ', resultStr);
+        logger.log('result: ', resultStr)
         if (resultStr.length < 500) {
-          bot.sendMessage(command.message.chat.id, resultStr);
+          bot.sendMessage(command.message.chat.id, resultStr)
         }
       }
     }
@@ -136,8 +137,8 @@ export default {
       return
     }
 
-    let buttonResponse = await udKeyboards.parseButtonClick(callbackQuery);
-    let def = buttonResponse.definitions[buttonResponse.position];
+    let buttonResponse = await udKeyboards.parseButtonClick(callbackQuery)
+    let def = buttonResponse.definitions[buttonResponse.position]
     let inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse)
 
     let editMessOptions: TelegramBot.EditMessageTextOptions = {
@@ -150,10 +151,10 @@ export default {
 
     bot.editMessageText(templates.definition(def), editMessOptions)
   },
-  
+
   sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean) {
     let msgOptions: TelegramBot.SendMessageOptions = {
-      parse_mode: "HTML",
+      parse_mode: 'HTML',
       disable_web_page_preview: true,
       reply_markup: keyboard ? udKeyboards.buildFromDefinition({ definitions: defs, position: 0 }) : undefined
     }
@@ -165,11 +166,11 @@ export default {
   },
 
   sendHelp (chat: TelegramBot.Chat) {
-    bot.sendMessage(chat.id, "sending help...")
+    bot.sendMessage(chat.id, 'sending help...')
   },
 
   handleError (error: any) {
-    logger.error("Error: ", error)
+    logger.error('Error: ', error)
     if (logChatId) {
       bot.sendMessage(logChatId, error.toString())
     }

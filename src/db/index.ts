@@ -13,16 +13,13 @@ if (process.env.MONGO_URL) {
   throw new Error('MONGO_URL is not defined in .ENV')
 }
 
-mongoose.connect(mongoUrl, {useNewUrlParser: true});
+mongoose.connect(mongoUrl, { useNewUrlParser: true })
 
-const MessageModel = mongoose.model('Message', messageSchema);
-
-// const kitty = new Cat({ name: 'Zildjian' });
-// kitty.save().then(() => console.log('meow'));
+const MessageModel: mongoose.Model<mongoose.Document> = mongoose.model('Message', messageSchema)
 
 export default {
-  saveMessage (tgMsg: TgMessage) {
-    const message = new MessageModel({ text: tgMsg.text })
-    message.save().then(() => console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'))
+  async saveMessage (tgMsg: TgMessage): Promise<void> {
+    const message: mongoose.Document = new MessageModel({ text: tgMsg.text })
+    await message.save()
   }
 }
