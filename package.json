@@ -11,7 +11,7 @@
     "coverage": "npm run test -- --coverage --coverageReporters=json text lcov html",
     "coverage:open": "npm run coverage && opn ./coverage/index.html",
     "dev": "concurrently \"npm run build:watch\" \"npm run start:watch:delay\"",
-    "lint": "eslint src/**/*.ts",
+    "lint": "tslint src/**/*.ts",
     "delay": "ping 127.0.0.1 -n 2 > nul",
     "start": "node -r dotenv/config lib/index.js",
     "start:watch:delay": "npm run delay && npm run start:watch",
@@ -32,8 +32,6 @@
     "@types/node-telegram-bot-api": "^0.30.4",
     "@types/string-template": "^1.0.2",
     "concurrently": "^4.1.0",
-    "eslint": "^5.12.0",
-    "eslint-config-standard": "^12.0.0",
     "jest": "^23.6.0",
     "jest-junit": "^5.2.0",
     "nodemon": "^1.18.9",
@@ -41,8 +39,10 @@
     "rimraf": "^2.6.3",
     "ts-jest": "^23.10.5",
     "ts-node": "^8.0.1",
-    "typescript": "^3.2.2",
-    "typescript-eslint-parser": "^21.0.2"
+    "tslint": "^5.12.1",
+    "tslint-config-standard": "^8.0.1",
+    "tslint-eslint-rules": "^5.4.0",
+    "typescript": "^3.2.2"
   },
   "dependencies": {
     "axios": "^0.18.0",
