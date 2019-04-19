@@ -1,9 +1,10 @@
 import Debug from 'debug'
-let log = Debug('udbot')
-let debug = log.extend('debug')
-let warn = log.extend('warn')
-let error = log.extend('error')
-let info = log.extend('info')
+
+const log = Debug('udbot')
+const debug = log.extend('debug')
+const warn = log.extend('warn')
+const error = log.extend('error')
+const info = log.extend('info')
 
 export default {
   log,

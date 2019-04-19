@@ -170,9 +170,13 @@ export default {
   },
 
   handleError (error: any) {
-    logger.error('Error: ', error)
+    logger.error(error)
+    this.logToTelegram(error)
+  },
+
+  logToTelegram (message: string) {
     if (logChatId) {
-      bot.sendMessage(logChatId, error.toString())
+      bot.sendMessage(logChatId, message)
     }
   }
 }
