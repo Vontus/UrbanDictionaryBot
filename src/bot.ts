@@ -8,6 +8,8 @@ import udKeyboards from './ud-keyboards'
 import { BotCommand } from './bot-command'
 import { UdDefinition } from './urban-api/ud-definition'
 import formatter from './formatter'
+import strings from './strings'
+import * as format from 'string-template'
 
 let botToken: string = util.getRequiredEnvVar('BOT_TOKEN')
 let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
@@ -19,17 +21,15 @@ let userBot: TelegramBot.User
 export default {
   bot,
 
-  start () {
+  async start () {
     bot.on('message', (msg) => this.routeMessage(msg))
     bot.on('error', (error) => this.handleError(error))
     bot.on('callback_query', callbackQuery => this.handleCallbackQuery(callbackQuery))
 
-    bot.getMe()
-      .then(response => userBot = response)
+    userBot = await bot.getMe()
   },
 
   async routeMessage (message: TelegramBot.Message) {
-    logger.log(message)
     if (message.chat.id === logChatId) {
       this.handleLogChat(message)
       return
@@ -73,11 +73,9 @@ export default {
           if (defs && defs.length > 0) {
             this.sendDefinition(message.chat.id, defs, 0, true)
           } else {
-            bot.sendMessage(message.chat.id, templates.noResults(text), { parse_mode: 'HTML' })
+            bot.sendMessage(message.chat.id, format(strings.noResults, text), { parse_mode: 'HTML' })
           }
         })
-    } else {
-      logger.error('Message has no text')
     }
   },
 
@@ -162,11 +160,11 @@ export default {
   },
 
   sendArabicResponse (chat: TelegramBot.Chat) {
-    bot.sendMessage(chat.id, templates.arabicResponse())
+    bot.sendMessage(chat.id, strings.arabicResponse)
   },
 
   sendHelp (chat: TelegramBot.Chat) {
-    bot.sendMessage(chat.id, 'sending help...')
+    bot.sendMessage(chat.id, 'I can help you find out about english slang by sending a message here or via inline mode! 😎')
   },
 
   handleError (error: any) {
