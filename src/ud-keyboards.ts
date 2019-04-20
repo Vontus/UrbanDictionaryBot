@@ -13,7 +13,7 @@ export default {
     let defs = buttonResponse.definitions
 
     let channelButton = {
-      text: '📣 Channel',
+      text: '📣 Urban Dictionary Channel',
       url: channelLink
     }
 
@@ -26,10 +26,10 @@ export default {
     let navigationButtons = [{
       text: '⏪ Previous',
       callback_data: defs[pos].word + '_' + (pos === first ? last : previous)
-    },{
+    }, {
       text: (pos + 1) + '/' + defs.length,
       callback_data: 'ignore'
-    },{
+    }, {
       text: '⏩ Next',
       callback_data: defs[pos].word + '_' + (pos === last ? first : next)
     }]

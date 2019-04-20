@@ -89,7 +89,7 @@ export default {
 
   async handleCommand (command: BotCommand) {
     let message = command.message
-    if (message.from && message.from.id === ownerId) {
+    if (message.chat.id === logChatId) {
       this.handleAdminCommand(command)
     }
 
