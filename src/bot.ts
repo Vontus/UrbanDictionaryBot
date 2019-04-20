@@ -86,19 +86,19 @@ export default {
   },
 
   async handleCommand (command: BotCommand) {
-    let message = command.message
-    if (message.chat.id === logChatId) {
-      this.handleAdminCommand(command)
-    }
-
     if (command.label === 'start') {
       if (command.args.length > 0) {
         let word = formatter.fromB64(command.args[0])
         let defs = (await UrbanApi.defineTerm(word))
-        this.sendDefinition(message.chat.id, defs, 0, true)
+        this.sendDefinition(command.message.chat.id, defs, 0, true)
       } else {
-        bot.sendMessage(message.chat.id, 'Type the word or expression you want to search.')
+        bot.sendMessage(command.message.chat.id, 'Type the word or expression you want to search.')
       }
+      return
+    }
+
+    if (command.label === 'help') {
+      this.sendHelp(command.message.chat)
     }
   },
 
