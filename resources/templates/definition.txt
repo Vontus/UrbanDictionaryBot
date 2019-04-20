@@ -6,4 +6,4 @@
 📌 <b>Examples</b>
 {formattedExample}
 
-{thumbs_up}👍     {thumbs_down}👎     <a href="{permalink}">Source</a>
+{thumbsUp}👍     {thumbsDown}👎     <a href="{permalink}">Source</a>

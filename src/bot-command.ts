@@ -15,7 +15,7 @@ export class BotCommand {
 
     let txt = mess.text
 
-    this.label = txt.substr(0, txt.indexOf(' ')).toLowerCase()
+    this.label = txt.substr(1, txt.indexOf(' ') - 1).toLowerCase()
     this.fullArgs = txt.substr(txt.indexOf(' ') + 1)
     this.args = this.fullArgs.split(' ')
     this.message = mess
