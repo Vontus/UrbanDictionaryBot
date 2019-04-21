@@ -23,15 +23,19 @@ export default {
     let first = 0
     let last = defs.length - 1
 
+    function callbackData (position: number) {
+      return defs.length > 1 ? defs[pos].word + '_' + position : 'ignore'
+    }
+
     let navigationButtons = [{
       text: '⏪ Previous',
-      callback_data: defs[pos].word + '_' + (pos === first ? last : previous)
+      callback_data: callbackData(pos === first ? last : previous)
     }, {
       text: (pos + 1) + '/' + defs.length,
       callback_data: 'ignore'
     }, {
       text: '⏩ Next',
-      callback_data: defs[pos].word + '_' + (pos === last ? first : next)
+      callback_data: callbackData(pos === last ? first : next)
     }]
 
     let keyboard: InlineKeyboardMarkup = {
