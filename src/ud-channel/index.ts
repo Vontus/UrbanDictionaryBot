@@ -1,9 +1,8 @@
 import * as TelegramBot from 'node-telegram-bot-api'
 import scraper from './scraper'
 import * as scheduler from 'node-schedule'
-import { UdChannelDef } from './ud-channel-def'
 import logger from '../logger'
-import bot from '../bot'
+import { bot } from '../index'
 import urbanApi from '../urban-api'
 import templates from '../templates'
 import storage from '../storage'
@@ -39,7 +38,7 @@ export default {
 
       if (channelDefToSend) {
         const defToSend = await urbanApi.defineDefId(channelDefToSend.defId)
-        bot.bot.sendMessage(channelId, templates.channelPost(defToSend), msgOpts)
+        bot.sendMessage(channelId, templates.channelPost(defToSend), msgOpts)
         storage.saveSentChannelDef(channelDefToSend)
 
         logger.info(`sending definition '${defToSend.defid}' to channel`)

@@ -4,6 +4,7 @@ import { UdDefinition } from './urban-api/ud-definition'
 
 let definitionTemplate = readTemplate('definition')
 let channelPostTemplate = readTemplate('channel-post')
+let inlineDefinitionTemplate = readTemplate('inline-definition')
 
 export default {
   definition (data: UdDefinition): string {
@@ -12,6 +13,10 @@ export default {
 
   channelPost (data: UdDefinition): string {
     return format(channelPostTemplate, data)
+  },
+
+  inlineDefinition (data: UdDefinition): string {
+    return format(inlineDefinitionTemplate, data)
   }
 }
 

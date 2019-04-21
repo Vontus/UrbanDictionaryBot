@@ -1,6 +1,7 @@
 import { UdDefinition } from './urban-api/ud-definition'
 import { CallbackQuery, InlineKeyboardMarkup } from 'node-telegram-bot-api'
 import UrbanApi from './urban-api'
+import formatter from './formatter'
 
 let channelLink: string
 
@@ -40,6 +41,19 @@ export default {
 
     let keyboard: InlineKeyboardMarkup = {
       inline_keyboard: [navigationButtons, [channelButton]]
+    }
+
+    return keyboard
+  },
+
+  inlineKeyboardResponse (word: string): InlineKeyboardMarkup {
+    let redirectButton = {
+      text: '➕ More info',
+      url: formatter.startUrl(word)
+    }
+
+    let keyboard: InlineKeyboardMarkup = {
+      inline_keyboard: [[redirectButton]]
     }
 
     return keyboard
