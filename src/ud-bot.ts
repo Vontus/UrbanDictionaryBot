@@ -6,6 +6,7 @@ import templates from './templates'
 import util from './util'
 import logger from './logger'
 import udKeyboards from './ud-keyboards'
+import inlineResults from './inline-results'
 import { BotCommand } from './bot-command'
 import { UdDefinition } from './urban-api/ud-definition'
 import strings from './strings'
@@ -23,11 +24,21 @@ export class UdBot extends TelegramBot {
     this.on('message', (msg) => this.routeMessage(msg))
     this.on('error', (error) => this.handleError(error))
     this.on('callback_query', callbackQuery => this.handleCallbackQuery(callbackQuery))
+    this.on('inline_query', query => this.onInlineQuery(query))
 
     this.getMe()
       .then(response => {
         userBot = response
       })
+  }
+
+  async onInlineQuery (inlineQuery: TelegramBot.InlineQuery) {
+    if (inlineQuery.query) {
+      const definitions = await UrbanApi.defineTerm(inlineQuery.query)
+      this.answerInlineQuery(inlineQuery.id, inlineResults.getResults(definitions))
+    } else {
+      this.answerInlineQuery(inlineQuery.id, [])
+    }
   }
 
   async routeMessage (message: TelegramBot.Message) {
