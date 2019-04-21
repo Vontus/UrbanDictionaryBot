@@ -86,30 +86,26 @@ export default {
   },
 
   async handleCommand (command: BotCommand) {
-    if (command.label === 'start') {
-      if (command.args.length > 0) {
-        let word = formatter.fromB64(command.args[0])
-        let defs = (await UrbanApi.defineTerm(word))
-        this.sendDefinition(command.message.chat.id, defs, 0, true)
-      } else {
-        bot.sendMessage(command.message.chat.id, strings.commands.start)
-      }
-      return
-    }
-
-    if (command.label === 'help') {
-      this.sendHelp(command.message.chat)
-      return
-    }
-
-    if (command.label === 'about') {
-      bot.sendMessage(command.message.chat.id, strings.commands.about, { parse_mode: 'HTML', disable_web_page_preview: true })
-      return
-    }
-
-    if (command.label === 'donate') {
-      bot.sendMessage(command.message.chat.id, strings.commands.donate, { parse_mode: 'HTML', disable_web_page_preview: true })
-      return
+    switch (command.label) {
+      case 'start':
+        if (command.args.length > 0) {
+          let word = formatter.fromB64(command.args[0])
+          let defs = (await UrbanApi.defineTerm(word))
+          this.sendDefinition(command.message.chat.id, defs, 0, true)
+        } else {
+          bot.sendMessage(command.message.chat.id, strings.commands.start)
+        }
+        break
+      case 'about':
+        bot.sendMessage(command.message.chat.id, strings.commands.about, { parse_mode: 'HTML', disable_web_page_preview: true })
+        break
+      case 'donate':
+        bot.sendMessage(command.message.chat.id, strings.commands.donate, { parse_mode: 'HTML', disable_web_page_preview: true })
+        break
+      case 'help':
+      default:
+        this.sendHelp(command.message.chat)
+        break
     }
   },
 
