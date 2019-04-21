@@ -12,6 +12,7 @@ import strings from './strings'
 import formatter from './formatter'
 
 let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
+let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID, 10) : null
 
 let userBot: TelegramBot.User
 
@@ -83,7 +84,7 @@ export class UdBot extends TelegramBot {
   }
 
   handleLogChat (message: TelegramBot.Message) {
-    if (message.text && message.text.startsWith('/')) {
+    if (message.text && message.text.startsWith('/') && message.from && message.from.id === ownerId) {
       this.handleAdminCommand(new BotCommand(message))
     }
   }
