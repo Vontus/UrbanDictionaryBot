@@ -104,20 +104,24 @@ export default {
 
   handleAdminCommand (command: BotCommand) {
     if (command.label === 'eval') {
-      let toExec = command.fullArgs
-      let result
-      try {
-        // tslint:disable-next-line:no-eval
-        result = eval(toExec)
-      } catch (error) {
-        result = error
-      }
-      if (result) {
-        let resultStr = result.toString()
-        logger.log('result: ', resultStr)
-        if (resultStr.length < 500) {
-          bot.sendMessage(command.message.chat.id, resultStr)
+      if (command.fullArgs != null) {
+        let toExec = command.fullArgs
+        let result
+        try {
+          // tslint:disable-next-line:no-eval
+          result = eval(toExec)
+        } catch (error) {
+          result = error
         }
+        if (result) {
+          let resultStr = result.toString()
+          logger.log('result: ', resultStr)
+          if (resultStr.length < 500) {
+            bot.sendMessage(command.message.chat.id, resultStr)
+          }
+        }
+      } else {
+        bot.sendMessage(command.message.chat.id, 'Please specify the code to eval')
       }
     }
   },
