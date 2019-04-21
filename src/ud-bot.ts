@@ -204,6 +204,14 @@ export class UdBot extends TelegramBot {
           strings.commands.donate,
           { parse_mode: 'HTML', disable_web_page_preview: true })
         break
+      case 'random':
+        this.sendDefinition(
+          command.message.chat.id,
+          await UrbanApi.random(),
+          0,
+          true
+        )
+        break
       case 'help':
       default:
         this.sendHelp(command.message.chat)

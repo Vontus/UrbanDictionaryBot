@@ -8,7 +8,7 @@ let urbanUrl: string = 'http://api.urbandictionary.com/v0/'
 export default {
   async defineDefId (defid: number): Promise<UdDefinition> {
     logger.log(`asking ud for ${defid}...`)
-    let data = (await udDefine({ defid })).data
+    let data = (await udRequest('define', { defid })).data
     if (data && data.length > 0) {
       cache.addDefinitions(data)
     }
@@ -23,7 +23,7 @@ export default {
       return cacheDefinitions
     } else {
       logger.log(`asking ud for "${term}"...`)
-      let data = (await udDefine({ term })).data
+      let data = (await udRequest('define', { term })).data
       if (data && data.length > 0) {
         cache.addDefinitions(data)
       }
@@ -31,19 +31,17 @@ export default {
     }
   },
 
-  random (): AxiosPromise<UdDefinition[]> {
-    return axios.request<UdDefinition[]>({
-      method: 'GET',
-      url: urbanUrl + 'random',
-      transformResponse: getAxiosTransformer()
-    })
+  async random (): Promise<UdDefinition[]> {
+    let data = (await udRequest('random')).data
+    cache.addDefinitions(data)
+    return data
   }
 }
 
-async function udDefine (params: any) {
+async function udRequest (method: string, params?: any) {
   return axios.request<UdDefinition[]>({
     method: 'GET',
-    url: urbanUrl + 'define',
+    url: urbanUrl + method,
     params,
     transformResponse: getAxiosTransformer()
   })
