@@ -25,7 +25,7 @@ export default {
     let last = defs.length - 1
 
     function callbackData (position: number) {
-      return defs.length > 1 ? defs[pos].word + '_' + position : 'ignore'
+      return defs.length > 1 ? formatter.compress(defs[pos].word + '_' + position) : 'ignore'
     }
 
     let navigationButtons = [{
@@ -61,7 +61,7 @@ export default {
 
   async parseButtonClick (callbackQuery: CallbackQuery): Promise<UdButtonResponse> {
     if (callbackQuery.data) {
-      let data = callbackQuery.data.split('_')
+      let data = formatter.decompress(callbackQuery.data).split('_')
       let term = data[0]
       let pos: number = parseInt(data[1], 10)
       let definitions = await UrbanApi.defineTerm(term)

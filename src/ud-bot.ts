@@ -184,7 +184,7 @@ export class UdBot extends TelegramBot {
     switch (command.label) {
       case 'start':
         if (command.args.length > 0) {
-          let word = formatter.fromB64(command.args[0])
+          let word = formatter.decompress(command.args[0])
           let defs = (await UrbanApi.defineTerm(word))
           this.sendDefinition(command.message.chat.id, defs, 0, true)
         } else {

@@ -1,5 +1,6 @@
 import { User } from 'node-telegram-bot-api'
 import logger from './logger'
+import * as compresser from 'lz-string'
 
 let botUsername: string
 
@@ -37,17 +38,17 @@ export default {
 
   startUrl (query: string): string {
     if (botUsername) {
-      return `https://t.me/${botUsername}?start=${this.toB64(query)}`
+      return `https://t.me/${botUsername}?start=${this.compress(query)}`
     }
     logger.error('Bot username not defined in environment')
     throw new Error('Bot username not defined in environment')
   },
 
-  toB64 (text: string): string {
-    return Buffer.from(text).toString('base64')
+  compress (text: string): string {
+    return compresser.compressToBase64(text)
   },
 
-  fromB64 (text: string): string {
-    return Buffer.from(text, 'base64').toString('ascii')
+  decompress (text: string): string {
+    return compresser.decompressFromBase64(text)
   }
 }
