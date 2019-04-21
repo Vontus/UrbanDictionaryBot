@@ -92,7 +92,7 @@ export default {
         let defs = (await UrbanApi.defineTerm(word))
         this.sendDefinition(command.message.chat.id, defs, 0, true)
       } else {
-        bot.sendMessage(command.message.chat.id, 'Type the word or expression you want to search.')
+        bot.sendMessage(command.message.chat.id, strings.commands.start)
       }
       return
     }
@@ -121,7 +121,7 @@ export default {
           }
         }
       } else {
-        bot.sendMessage(command.message.chat.id, 'Please specify the code to eval')
+        bot.sendMessage(command.message.chat.id, strings.commands.eval.noargs)
       }
     }
   },
@@ -168,7 +168,7 @@ export default {
   },
 
   sendHelp (chat: TelegramBot.Chat) {
-    bot.sendMessage(chat.id, 'I can help you find out about english slang by sending a message here or via inline mode! 😎')
+    bot.sendMessage(chat.id, strings.help)
   },
 
   handleError (error: any) {
