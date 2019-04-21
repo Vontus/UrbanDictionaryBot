@@ -6,4 +6,4 @@
 📌 <b>Examples</b>
 {formattedExample}
 
-{thumbsUp}👍     {thumbsDown}👎     <a href="{permalink}">Source</a>
+#WordOfTheDay - <a href="{permalink}">Source</a>

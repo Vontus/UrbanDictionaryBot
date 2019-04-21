@@ -1,23 +1,29 @@
-import { Message } from "node-telegram-bot-api";
-import logger from "./logger";
+import { Message } from 'node-telegram-bot-api'
+import logger from './logger'
 
 export class BotCommand {
-  label: string;
-  args: string[];
-  fullArgs: string;
-  message: Message;
+  label: string
+  fullArgs: string | null = null
+  args: string[] = []
+  message: Message
 
   constructor (mess: Message) {
-    if (!mess.text || !mess.text.startsWith("/")) {
-      logger.error("Invalid command message", mess)
-      throw new Error("Invalid command message")
+    if (!mess.text || !mess.text.startsWith('/')) {
+      logger.error('Invalid command message', mess)
+      throw new Error('Invalid command message')
     }
 
-    let txt = mess.text
+    const txt = mess.text
+    const firstSpaceIndex = txt.indexOf(' ')
+    const hasArgs = firstSpaceIndex > -1
 
-    this.label = txt.substr(0, txt.indexOf(' ')).toLowerCase();
-    this.fullArgs = txt.substr(txt.indexOf(' ') +1);
-    this.args = this.fullArgs.split(' ')
-    this.message = mess;
+    if (hasArgs) {
+      const argsIndex = firstSpaceIndex + 1
+      this.fullArgs = txt.substr(argsIndex)
+      this.args = this.fullArgs.split(' ')
+    }
+
+    this.label = txt.substr(1, hasArgs ? firstSpaceIndex - 1 : undefined).toLowerCase()
+    this.message = mess
   }
 }

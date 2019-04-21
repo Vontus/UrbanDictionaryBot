@@ -1,25 +1,25 @@
-import * as Fs from "fs";
-import * as replace from "string-template";
-import { UdDefinition } from "./urban-api/ud-definition";
+import * as Fs from 'fs'
+import * as format from 'string-template'
+import { UdDefinition } from './urban-api/ud-definition'
 
-let definitionTemplate = readTemplate("definition");
-let noResultTemplate = readTemplate("no-results");
-let arabicTemplate = readTemplate("arabic-response");
+let definitionTemplate = readTemplate('definition')
+let channelPostTemplate = readTemplate('channel-post')
+let inlineDefinitionTemplate = readTemplate('inline-definition')
 
 export default {
-  definition(data: UdDefinition): string {
-    return replace(definitionTemplate, data);
+  definition (data: UdDefinition): string {
+    return format(definitionTemplate, data)
   },
 
-  noResults(word: string): string {
-    return replace(noResultTemplate, word)
+  channelPost (data: UdDefinition): string {
+    return format(channelPostTemplate, data)
   },
 
-  arabicResponse(): string {
-    return arabicTemplate
+  inlineDefinition (data: UdDefinition): string {
+    return format(inlineDefinitionTemplate, data)
   }
-};
+}
 
-function readTemplate(name: string): string {
-  return Fs.readFileSync(`./resources/templates/${name}.txt`, "utf8").toString()
+function readTemplate (name: string): string {
+  return Fs.readFileSync(`./resources/templates/${name}.txt`, 'utf8').toString()
 }
