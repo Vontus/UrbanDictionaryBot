@@ -99,6 +99,17 @@ export default {
 
     if (command.label === 'help') {
       this.sendHelp(command.message.chat)
+      return
+    }
+
+    if (command.label === 'about') {
+      bot.sendMessage(command.message.chat.id, strings.commands.about, { parse_mode: 'HTML', disable_web_page_preview: true })
+      return
+    }
+
+    if (command.label === 'donate') {
+      bot.sendMessage(command.message.chat.id, strings.commands.donate, { parse_mode: 'HTML', disable_web_page_preview: true })
+      return
     }
   },
 
