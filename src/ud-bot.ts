@@ -1,4 +1,5 @@
 import * as TelegramBot from 'node-telegram-bot-api'
+import * as format from 'string-template'
 
 import UrbanApi from './urban-api'
 import templates from './templates'
@@ -7,27 +8,26 @@ import logger from './logger'
 import udKeyboards from './ud-keyboards'
 import { BotCommand } from './bot-command'
 import { UdDefinition } from './urban-api/ud-definition'
-import formatter from './formatter'
 import strings from './strings'
-import * as format from 'string-template'
+import formatter from './formatter'
 
-let botToken: string = util.getRequiredEnvVar('BOT_TOKEN')
 let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
-let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID, 10) : null
 
-let bot: TelegramBot = new TelegramBot(botToken, { polling: true })
 let userBot: TelegramBot.User
 
-export default {
-  bot,
+export class UdBot extends TelegramBot {
+  public constructor (token: string, options: TelegramBot.ConstructorOptions) {
+    super(token, options)
 
-  async start () {
-    bot.on('message', (msg) => this.routeMessage(msg))
-    bot.on('error', (error) => this.handleError(error))
-    bot.on('callback_query', callbackQuery => this.handleCallbackQuery(callbackQuery))
+    this.on('message', (msg) => this.routeMessage(msg))
+    this.on('error', (error) => this.handleError(error))
+    this.on('callback_query', callbackQuery => this.handleCallbackQuery(callbackQuery))
 
-    userBot = await bot.getMe()
-  },
+    this.getMe()
+      .then(response => {
+        userBot = response
+      })
+  }
 
   async routeMessage (message: TelegramBot.Message) {
     if (message.chat.id === logChatId) {
@@ -38,9 +38,9 @@ export default {
     if (message.chat.type === 'private') {
       this.handlePrivateChat(message)
     } else if (message.left_chat_member && message.left_chat_member.id !== userBot.id) {
-      bot.leaveChat(message.chat.id)
+      this.leaveChat(message.chat.id)
     }
-  },
+  }
 
   handlePrivateChat (message: TelegramBot.Message) {
     if (!message.text) {
@@ -62,7 +62,7 @@ export default {
 
     // Or else...
     this.handleUdQuery(message)
-  },
+  }
 
   handleUdQuery (message: TelegramBot.Message) {
     if (message.text) {
@@ -73,65 +73,20 @@ export default {
           if (defs && defs.length > 0) {
             this.sendDefinition(message.chat.id, defs, 0, true)
           } else {
-            bot.sendMessage(message.chat.id, format(strings.noResults, text), { parse_mode: 'HTML' })
+            this.sendMessage(
+              message.chat.id,
+              format(strings.noResults, text),
+              { parse_mode: 'HTML' })
           }
         })
     }
-  },
+  }
 
   handleLogChat (message: TelegramBot.Message) {
     if (message.text && message.text.startsWith('/')) {
       this.handleAdminCommand(new BotCommand(message))
     }
-  },
-
-  async handleCommand (command: BotCommand) {
-    switch (command.label) {
-      case 'start':
-        if (command.args.length > 0) {
-          let word = formatter.fromB64(command.args[0])
-          let defs = (await UrbanApi.defineTerm(word))
-          this.sendDefinition(command.message.chat.id, defs, 0, true)
-        } else {
-          bot.sendMessage(command.message.chat.id, strings.commands.start)
-        }
-        break
-      case 'about':
-        bot.sendMessage(command.message.chat.id, strings.commands.about, { parse_mode: 'HTML', disable_web_page_preview: true })
-        break
-      case 'donate':
-        bot.sendMessage(command.message.chat.id, strings.commands.donate, { parse_mode: 'HTML', disable_web_page_preview: true })
-        break
-      case 'help':
-      default:
-        this.sendHelp(command.message.chat)
-        break
-    }
-  },
-
-  handleAdminCommand (command: BotCommand) {
-    if (command.label === 'eval') {
-      if (command.fullArgs != null) {
-        let toExec = command.fullArgs
-        let result
-        try {
-          // tslint:disable-next-line:no-eval
-          result = eval(toExec)
-        } catch (error) {
-          result = error
-        }
-        if (result) {
-          let resultStr = result.toString()
-          logger.log('result: ', resultStr)
-          if (resultStr.length < 500) {
-            bot.sendMessage(command.message.chat.id, resultStr)
-          }
-        }
-      } else {
-        bot.sendMessage(command.message.chat.id, strings.commands.eval.noargs)
-      }
-    }
-  },
+  }
 
   async handleCallbackQuery (callbackQuery: TelegramBot.CallbackQuery) {
     if (!callbackQuery.message) {
@@ -140,7 +95,7 @@ export default {
     }
 
     if (callbackQuery.data === 'ignore') {
-      bot.answerCallbackQuery({
+      this.answerCallbackQuery({
         callback_query_id: callbackQuery.id
       })
       return
@@ -158,8 +113,8 @@ export default {
       reply_markup: inlineKeyboard
     }
 
-    bot.editMessageText(templates.definition(def), editMessOptions)
-  },
+    this.editMessageText(templates.definition(def), editMessOptions)
+  }
 
   sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean) {
     let msgOptions: TelegramBot.SendMessageOptions = {
@@ -167,25 +122,80 @@ export default {
       disable_web_page_preview: true,
       reply_markup: keyboard ? udKeyboards.buildFromDefinition({ definitions: defs, position: 0 }) : undefined
     }
-    bot.sendMessage(chatId, templates.definition(defs[pos]), msgOptions)
-  },
+    this.sendMessage(chatId, templates.definition(defs[pos]), msgOptions)
+  }
 
   sendArabicResponse (chat: TelegramBot.Chat) {
-    bot.sendMessage(chat.id, strings.arabicResponse)
-  },
+    this.sendMessage(chat.id, strings.arabicResponse)
+  }
 
   sendHelp (chat: TelegramBot.Chat) {
-    bot.sendMessage(chat.id, strings.help)
-  },
+    this.sendMessage(chat.id, strings.help)
+  }
 
   handleError (error: any) {
     logger.error(error)
     this.logToTelegram(error)
-  },
+  }
 
   logToTelegram (message: string) {
     if (logChatId) {
-      bot.sendMessage(logChatId, message)
+      this.sendMessage(logChatId, message)
+    }
+  }
+
+  handleAdminCommand (command: BotCommand) {
+    if (command.label === 'eval') {
+      if (command.fullArgs != null) {
+        let toExec = command.fullArgs
+        let result
+        try {
+          // tslint:disable-next-line:no-eval
+          result = eval(toExec)
+        } catch (error) {
+          result = error
+        }
+        if (result) {
+          let resultStr = result.toString()
+          logger.log('result: ', resultStr)
+          if (resultStr.length < 500) {
+            this.sendMessage(command.message.chat.id, resultStr)
+          }
+        }
+      } else {
+        this.sendMessage(command.message.chat.id, strings.commands.eval.noargs)
+      }
+    }
+  }
+
+  async handleCommand (command: BotCommand) {
+    switch (command.label) {
+      case 'start':
+        if (command.args.length > 0) {
+          let word = formatter.fromB64(command.args[0])
+          let defs = (await UrbanApi.defineTerm(word))
+          this.sendDefinition(command.message.chat.id, defs, 0, true)
+        } else {
+          this.sendMessage(command.message.chat.id, strings.commands.start)
+        }
+        break
+      case 'about':
+        this.sendMessage(
+          command.message.chat.id,
+          strings.commands.about,
+          { parse_mode: 'HTML', disable_web_page_preview: true }
+        )
+        break
+      case 'donate':
+        this.sendMessage(
+          command.message.chat.id,
+          strings.commands.donate,
+          { parse_mode: 'HTML', disable_web_page_preview: true })
+        break
+      case 'help':
+      default:
+        this.sendHelp(command.message.chat)
+        break
     }
   }
 }
