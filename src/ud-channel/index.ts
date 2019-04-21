@@ -39,7 +39,12 @@ export default {
       if (channelDefToSend) {
         const defToSend = await urbanApi.defineDefId(channelDefToSend.defId)
         bot.sendMessage(channelId, templates.channelPost(defToSend), msgOpts)
+
         storage.saveSentChannelDef(channelDefToSend)
+
+        if (channelDefToSend.gif) {
+          bot.sendDocument(channelId, channelDefToSend.gif)
+        }
 
         logger.info(`sending definition '${defToSend.defid}' to channel`)
       } else {
