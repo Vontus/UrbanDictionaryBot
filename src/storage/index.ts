@@ -11,7 +11,7 @@ async function saveSentChannelDef (channelDef: UdChannelDef): Promise<void> {
   const channelData = await getChannelData()
 
   const defs = channelData.sentDefinitions.slice(0, maxChannelDefs)
-  defs.push(channelDef)
+  defs.unshift(channelDef)
   channelData.sentDefinitions = defs
 
   writeChannelFile(channelData)
