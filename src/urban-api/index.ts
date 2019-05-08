@@ -53,9 +53,11 @@ function getAxiosTransformer (): AxiosTransformer[] {
     axios.defaults.transformResponse ? axios.defaults.transformResponse : [],
     (r: any) => {
       let defs: UdDefinition[] = []
-      r.list.forEach((element: any) => {
-        defs.push(new UdDefinition(element))
-      })
+      if (r.list) {
+        r.list.forEach((element: any) => {
+          defs.push(new UdDefinition(element))
+        })
+      }
       return defs
     }
   )
