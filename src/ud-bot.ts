@@ -5,12 +5,16 @@ import UrbanApi from './urban-api'
 import templates from './templates'
 import util from './util'
 import logger from './logger'
+import * as scheduler from 'node-schedule'
 import udKeyboards from './ud-keyboards'
 import inlineResults from './inline-results'
 import { BotCommand } from './bot-command'
 import { UdDefinition } from './urban-api/ud-definition'
 import strings from './strings'
 import formatter from './formatter'
+import { addStats, getTodayTotalStats } from './storage/stats'
+import { InteractionType } from './storage/stats-data'
+import * as YAML from 'yamljs'
 
 let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
 let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID, 10) : null
@@ -25,6 +29,19 @@ export class UdBot extends TelegramBot {
     this.on('error', (error) => this.handleError(error))
     this.on('callback_query', callbackQuery => this.handleCallbackQuery(callbackQuery))
     this.on('inline_query', query => this.onInlineQuery(query))
+    this.on('chosen_inline_result', chosenResult => this.onChosenInlineResult(chosenResult))
+
+    if (logChatId) {
+      scheduler.scheduleJob(process.env.STATS_POST_TIME || '0 0 0 * * *', async () => {
+        if (logChatId) {
+          await this.sendStats(logChatId)
+        }
+      })
+    }
+  }
+
+  async onChosenInlineResult (chosenInlineResult: TelegramBot.ChosenInlineResult) {
+    await addStats(chosenInlineResult.from.id, InteractionType.InlineQuery)
   }
 
   async onInlineQuery (inlineQuery: TelegramBot.InlineQuery) {
@@ -64,7 +81,10 @@ export class UdBot extends TelegramBot {
     }
 
     // Or else...
-    return this.handleUdQuery(message)
+    return Promise.all([
+      this.handleUdQuery(message),
+      addStats(message.chat.id, InteractionType.Message)
+    ])
   }
 
   async handleUdQuery (message: TelegramBot.Message) {
@@ -112,7 +132,10 @@ export class UdBot extends TelegramBot {
       reply_markup: inlineKeyboard
     }
 
-    return this.editMessageText(templates.definition(def), editMessOptions)
+    return Promise.all([
+      this.editMessageText(templates.definition(def), editMessOptions),
+      addStats(callbackQuery.message.chat.id, InteractionType.ButtonClick)
+    ])
   }
 
   async sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean) {
@@ -144,26 +167,42 @@ export class UdBot extends TelegramBot {
   }
 
   async handleAdminCommand (command: BotCommand) {
-    if (command.label === 'eval') {
-      if (command.fullArgs !== null) {
-        let toExec = command.fullArgs
-        let result
-        try {
-          // tslint:disable-next-line:no-eval
-          result = eval(toExec)
-        } catch (error) {
-          result = error
-        }
-        if (result) {
-          let resultStr = result.toString()
-          logger.log('result: ', resultStr)
-          if (resultStr.length < 500) {
-            return this.sendMessage(command.message.chat.id, resultStr)
-          }
-        }
-      } else {
-        return this.sendMessage(command.message.chat.id, strings.commands.eval.noargs)
+    switch (command.label) {
+      case 'eval':
+        await this.handleEvalCommand(command)
+        break
+      case 'stats':
+        await this.handleStatsCommand(command)
+    }
+  }
+
+  async handleStatsCommand (command: BotCommand) {
+    return this.sendStats(command.message.chat.id)
+  }
+
+  async sendStats (chatId: number) {
+    return this.sendMessage(chatId, "Today's Stats:\n\n" + YAML.stringify(await getTodayTotalStats()))
+  }
+
+  async handleEvalCommand (command: BotCommand) {
+    if (command.fullArgs !== null) {
+      let toExec = command.fullArgs
+      let result
+      try {
+        // tslint:disable-next-line:no-eval
+        result = eval(toExec)
+      } catch (error) {
+        result = error
       }
+      if (result) {
+        let resultStr = result.toString()
+        logger.log('result: ', resultStr)
+        if (resultStr.length < 500) {
+          return this.sendMessage(command.message.chat.id, resultStr)
+        }
+      }
+    } else {
+      return this.sendMessage(command.message.chat.id, strings.commands.eval.noargs)
     }
   }
 

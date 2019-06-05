@@ -5,7 +5,7 @@ import logger from '../logger'
 import { bot } from '../index'
 import urbanApi from '../urban-api'
 import templates from '../templates'
-import storage from '../storage'
+import channelStorage from '../storage/channel'
 
 const channelId: string | undefined = process.env.CHANNEL_ID
 const channelPostTime: string | undefined = process.env.CHANNEL_POST_TIME
@@ -35,13 +35,13 @@ export default {
 
       const scrapedDefinitions = await scraper.getPageDefinitions()
       logger.info('scraped definitions: ', scrapedDefinitions)
-      const channelDefToSend = await storage.getFirstUnsentDef(scrapedDefinitions)
+      const channelDefToSend = await channelStorage.getFirstUnsentDef(scrapedDefinitions)
 
       if (channelDefToSend) {
         const defToSend = await urbanApi.defineDefId(channelDefToSend.defId)
         promises.push(bot.sendMessage(channelId, templates.channelPost(defToSend), msgOpts))
 
-        promises.push(storage.saveSentChannelDef(channelDefToSend))
+        promises.push(channelStorage.saveSentChannelDef(channelDefToSend))
 
         if (channelDefToSend.gif) {
           promises.push(bot.sendDocument(channelId, channelDefToSend.gif))
