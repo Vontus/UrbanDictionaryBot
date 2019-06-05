@@ -14,7 +14,7 @@ async function saveSentChannelDef (channelDef: UdChannelDef): Promise<void> {
   defs.unshift(channelDef)
   channelData.sentDefinitions = defs
 
-  writeChannelFile(channelData)
+  return writeChannelFile(channelData)
 }
 
 /**
@@ -43,7 +43,7 @@ async function getChannelData (): Promise<ChannelData> {
 }
 
 async function writeChannelFile (chanData: ChannelData) {
-  jsonfile.writeFile(channelFile, chanData)
+  return jsonfile.writeFile(channelFile, chanData)
 }
 
 export default {
