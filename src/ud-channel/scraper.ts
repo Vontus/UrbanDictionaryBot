@@ -20,8 +20,10 @@ export default {
     $('.def-panel', html).each((_index, elem) => {
       const defid = $(elem).data('defid')
       const gif = $(elem).find('.gif img').attr('src')
+      const date = $(elem).find('.ribbon').text()
+      const word = $(elem).find('.word').text()
 
-      defs.push(new UdChannelDef(defid, gif))
+      defs.push(new UdChannelDef(defid, word, date, gif))
     })
 
     return defs
