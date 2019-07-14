@@ -10,7 +10,7 @@ const bot = new UdBot(botToken, { polling: true })
 logger.log('Starting...')
 
 const start = async () => {
-  udChannel.init()
+  await udChannel.init()
 }
 
 // tslint:disable-next-line: no-floating-promises
