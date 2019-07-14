@@ -15,6 +15,7 @@ import formatter from './formatter'
 import { addStats, getTodayTotalStats } from './storage/stats'
 import { InteractionType } from './storage/stats-data'
 import * as YAML from 'yamljs'
+import udChannel from './ud-channel'
 
 let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
 let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID, 10) : null
@@ -167,13 +168,40 @@ export class UdBot extends TelegramBot {
   }
 
   async handleAdminCommand (command: BotCommand) {
-    switch (command.label) {
-      case 'eval':
-        await this.handleEvalCommand(command)
-        break
-      case 'stats':
-        await this.handleStatsCommand(command)
+    try {
+      switch (command.label) {
+        case 'eval':
+          await this.handleEvalCommand(command)
+          break
+        case 'stats':
+          await this.handleStatsCommand(command)
+          break
+        case 'wotd':
+          await this.handleWotdCommand(command)
+          break
+      }
+    } catch (err) {
+      await this.sendMessage(command.message.chat.id, 'Error executing command:\n' + err)
     }
+  }
+
+  async handleWotdCommand (command: BotCommand) {
+    let chatId: string = command.message.chat.id.toString()
+    let saveWord: boolean = false
+    if (command.args.length > 0) {
+      if (command.args[0] === 'ch' || command.args[0] === 'channel') {
+        saveWord = true
+        if (process.env.CHANNEL_ID) {
+          chatId = process.env.CHANNEL_ID
+        } else {
+          throw new Error('CHANNEL_ID is not defined')
+        }
+      } else {
+        chatId = command.args[0]
+      }
+    }
+
+    await udChannel.sendWord(chatId, saveWord)
   }
 
   async handleStatsCommand (command: BotCommand) {
@@ -240,7 +268,11 @@ export class UdBot extends TelegramBot {
         break
       case 'help':
       default:
-        await this.sendHelp(command.message.chat)
+        if (command.message.from && command.message.from.id === ownerId) {
+          await this.handleAdminCommand(command)
+        } else {
+          await this.sendHelp(command.message.chat)
+        }
         break
     }
   }
