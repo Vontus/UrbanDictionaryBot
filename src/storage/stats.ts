@@ -1,9 +1,9 @@
 import * as jsonfile from 'jsonfile'
 import * as path from 'path'
 import * as fs from 'fs'
-import { InteractionType, IStatsData, IInteraction } from './stats-data'
+import { InteractionType, IStatsData } from './stats-data'
 import * as moment from 'moment'
-import { groupBy, flatten, sumBy, mapValues }from 'lodash'
+import { groupBy, flatten, sumBy, mapValues, uniqBy } from 'lodash'
 
 const statsFolder = path.join(process.env.DATA_PATH || './data/', 'stats/')
 
@@ -63,8 +63,9 @@ async function getTodayTotalStats () {
       todayInteractionsDuplicated, interac => interac.interactionType
     ), type => sumBy(type, 'amount')
   )
+  const uniqueUsers = uniqBy(todayStats, stat => stat.userId).map(stat => stat.userId).length
 
-  return todayInteractions
+  return { ...todayInteractions, 'unique-users': uniqueUsers }
 }
 
 export { addStats, getAllStats, getTodayTotalStats }
