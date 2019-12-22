@@ -13,7 +13,6 @@ const start = async () => {
   await udChannel.init()
 }
 
-// tslint:disable-next-line: no-floating-promises
 start()
 
 export { bot }
