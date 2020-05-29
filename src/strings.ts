@@ -6,6 +6,11 @@ export default {
   commands: {
     start: 'Type the word or expression you want to search.',
     about: 'Bot created by @Vontus using this awesome <a href="https://github.com/yagop/node-telegram-bot-api">API</a>.\n\n<a href="https://github.com/Vontus/UrbanDictionaryBot">Bot source</a>',
-    donate: 'Building bots like this consumes time and money. If you like this bot and want to help me keep the server up, you can donate by clicking <a href="http://paypal.me/vontus">here</a>. Thank you! ❤️'
+    donate: 'Building bots like this consumes time and money. If you like this bot and want to help me keep the server up, you can donate by clicking <a href="http://paypal.me/vontus">here</a>. Thank you! ❤️',
+    stats: {
+      dateFormat: 'YYYY-MM-DD',
+      wrongDateFormat: 'Date {0} is not valid. Please use format {1}.',
+      wrongDateOrder: 'The second date must be after the first.'
+    }
   }
 }
