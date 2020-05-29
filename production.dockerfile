@@ -8,4 +8,6 @@ COPY . .
 
 RUN npm install
 
+RUN mkdir -p data/stats
+
 CMD [ "npm", "start" ]
