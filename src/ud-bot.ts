@@ -170,9 +170,6 @@ export class UdBot extends TelegramBot {
   async handleAdminCommand (command: BotCommand) {
     try {
       switch (command.label) {
-        case 'eval':
-          await this.handleEvalCommand(command)
-          break
         case 'stats':
           await this.handleStatsCommand(command)
           break
@@ -210,28 +207,6 @@ export class UdBot extends TelegramBot {
 
   async sendStats (chatId: number) {
     return this.sendMessage(chatId, "Today's Stats:\n\n" + YAML.stringify(await getTodayTotalStats()))
-  }
-
-  async handleEvalCommand (command: BotCommand) {
-    if (command.fullArgs !== null) {
-      let toExec = command.fullArgs
-      let result
-      try {
-        // tslint:disable-next-line:no-eval
-        result = eval(toExec)
-      } catch (error) {
-        result = error
-      }
-      if (result) {
-        let resultStr = result.toString()
-        logger.log('result: ', resultStr)
-        if (resultStr.length < 500) {
-          return this.sendMessage(command.message.chat.id, resultStr)
-        }
-      }
-    } else {
-      return this.sendMessage(command.message.chat.id, strings.commands.eval.noargs)
-    }
   }
 
   async handleCommand (command: BotCommand) {
