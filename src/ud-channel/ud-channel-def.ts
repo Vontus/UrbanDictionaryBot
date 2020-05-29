@@ -4,7 +4,7 @@ export class UdChannelDef {
   date: string
   word: string
 
-  public constructor (defId: number, word: string, date: string, gif: string) {
+  public constructor (defId: number, word: string, date: string, gif: string | undefined) {
     this.defId = defId
     this.gif = gif
     this.date = date

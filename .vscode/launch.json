@@ -5,14 +5,17 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Attach to node",
       "type": "node",
-      "request": "launch",
-      "name": "Current TS File",
-      "args": ["-r", "dotenv/config", "src/index.ts"],
-      "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
-      "sourceMaps": true,
-      "cwd": "${workspaceRoot}",
-      "protocol": "inspector"
+      "request": "attach",
+      "restart": true,
+      "sourceMapPathOverrides": {
+        "/usr/src/app/*": "${workspaceRoot}/*"
+        // "webpack:///./~/*": "${workspaceRoot}/node_modules/*",
+        // "webpack:///./*": "${workspaceRoot}/*",
+        // "webpack:///*": "*"
+      },
+      "port": 6068
     }
   ]
 }
