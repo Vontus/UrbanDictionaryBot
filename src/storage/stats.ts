@@ -7,7 +7,7 @@ import { groupBy, flatten, sumBy, mapValues, uniqBy } from 'lodash'
 
 const statsFolder = path.join(process.env.DATA_PATH || './data/', 'stats/')
 
-async function addStats (userId: number, interactionType: InteractionType): Promise<void> {
+export async function addStats (userId: number, interactionType: InteractionType): Promise<void> {
   const today = moment()
   const todayFileName = getFileNameOfDate(today)
 
@@ -49,13 +49,13 @@ function getFileNameOfDate (date: moment.Moment) {
   return path.join(statsFolder, date.format('YYYY-MM-DD') + '.json')
 }
 
-async function getAllStats (date: moment.Moment) {
+export async function getAllStats (date: moment.Moment) {
   const dateFileName = getFileNameOfDate(date)
   return jsonfile.readFile(dateFileName)
 }
 
-async function getTodayTotalStats () {
-  const todayFileName = getFileNameOfDate(moment())
+export async function getStatsFrom (momentDay: moment.Moment) {
+  const todayFileName = getFileNameOfDate(momentDay)
   const todayStats: IStatsData[] = await jsonfile.readFile(todayFileName)
   const todayInteractionsDuplicated = flatten(todayStats.map(ts => ts.interactions))
   const todayInteractions = mapValues(
@@ -67,5 +67,3 @@ async function getTodayTotalStats () {
 
   return { ...todayInteractions, 'unique-users': uniqueUsers }
 }
-
-export { addStats, getAllStats, getTodayTotalStats }

@@ -1,20 +1,21 @@
 import * as TelegramBot from 'node-telegram-bot-api'
 import * as format from 'string-template'
+import * as scheduler from 'node-schedule'
+import * as YAML from 'yamljs'
+import * as moment from 'moment'
 
 import UrbanApi from './urban-api'
 import templates from './templates'
 import util from './util'
 import logger from './logger'
-import * as scheduler from 'node-schedule'
 import udKeyboards from './ud-keyboards'
 import inlineResults from './inline-results'
 import { BotCommand } from './bot-command'
 import { UdDefinition } from './urban-api/ud-definition'
 import strings from './strings'
 import formatter from './formatter'
-import { addStats, getTodayTotalStats } from './storage/stats'
+import { addStats, getStatsFrom } from './storage/stats'
 import { InteractionType } from './storage/stats-data'
-import * as YAML from 'yamljs'
 import udChannel from './ud-channel'
 
 let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
@@ -32,10 +33,10 @@ export class UdBot extends TelegramBot {
     this.on('inline_query', query => this.onInlineQuery(query))
     this.on('chosen_inline_result', chosenResult => this.onChosenInlineResult(chosenResult))
 
-    if (logChatId) {
-      scheduler.scheduleJob(process.env.STATS_POST_TIME || '0 0 0 * * *', async () => {
+    if (logChatId && process.env.STATS_POST_TIME) {
+      scheduler.scheduleJob(process.env.STATS_POST_TIME, async () => {
         if (logChatId) {
-          await this.sendStats(logChatId)
+          await this.sendStats(logChatId, moment())
         }
       })
     }
@@ -170,9 +171,6 @@ export class UdBot extends TelegramBot {
   async handleAdminCommand (command: BotCommand) {
     try {
       switch (command.label) {
-        case 'eval':
-          await this.handleEvalCommand(command)
-          break
         case 'stats':
           await this.handleStatsCommand(command)
           break
@@ -182,6 +180,7 @@ export class UdBot extends TelegramBot {
       }
     } catch (err) {
       await this.sendMessage(command.message.chat.id, 'Error executing command:\n' + err)
+      throw err
     }
   }
 
@@ -205,33 +204,22 @@ export class UdBot extends TelegramBot {
   }
 
   async handleStatsCommand (command: BotCommand) {
-    return this.sendStats(command.message.chat.id)
-  }
+    const { dateFormat, wrongDateFormat, wrongDateOrder } = strings.commands.stats
+    const from = command.args[0]
+    const fromMoment = from ? moment(from, dateFormat, true) : moment()
 
-  async sendStats (chatId: number) {
-    return this.sendMessage(chatId, "Today's Stats:\n\n" + YAML.stringify(await getTodayTotalStats()))
-  }
-
-  async handleEvalCommand (command: BotCommand) {
-    if (command.fullArgs !== null) {
-      let toExec = command.fullArgs
-      let result
-      try {
-        // tslint:disable-next-line:no-eval
-        result = eval(toExec)
-      } catch (error) {
-        result = error
-      }
-      if (result) {
-        let resultStr = result.toString()
-        logger.log('result: ', resultStr)
-        if (resultStr.length < 500) {
-          return this.sendMessage(command.message.chat.id, resultStr)
-        }
-      }
-    } else {
-      return this.sendMessage(command.message.chat.id, strings.commands.eval.noargs)
+    if (!fromMoment.isValid()) {
+      return this.sendMessage(command.message.chat.id, format(wrongDateFormat, from, dateFormat))
     }
+
+    return this.sendStats(command.message.chat.id, fromMoment)
+  }
+
+  async sendStats (chatId: number, fromMoment: moment.Moment) {
+    const message = fromMoment.isSame(moment(), 'day') ?
+      "Today's Stats:" :
+      'Stats from ' + fromMoment.format(strings.commands.stats.dateFormat)
+    return this.sendMessage(chatId, message + '\n\n' + YAML.stringify(await getStatsFrom(fromMoment)))
   }
 
   async handleCommand (command: BotCommand) {

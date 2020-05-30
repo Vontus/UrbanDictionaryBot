@@ -2,6 +2,7 @@ import { UdDefinition } from './urban-api/ud-definition'
 import { CallbackQuery, InlineKeyboardMarkup } from 'node-telegram-bot-api'
 import UrbanApi from './urban-api'
 import formatter from './formatter'
+import strings from './strings'
 
 let channelLink: string
 
@@ -16,6 +17,11 @@ export default {
     let channelButton = {
       text: '📣 Urban Dictionary Channel',
       url: channelLink
+    }
+
+    let donateButton = {
+      text: '☕️ Buy me a coffee',
+      url: strings.donateLink
     }
 
     let pos = buttonResponse.position
@@ -40,7 +46,7 @@ export default {
     }]
 
     let keyboard: InlineKeyboardMarkup = {
-      inline_keyboard: [navigationButtons, [channelButton]]
+      inline_keyboard: [navigationButtons, [donateButton, channelButton]]
     }
 
     return keyboard

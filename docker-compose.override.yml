@@ -5,5 +5,3 @@ services:
     command: npm run dev
     ports:
       - 6068:6068
-    volumes:
-      - .:/usr/src/app
