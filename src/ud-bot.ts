@@ -49,6 +49,12 @@ export class UdBot extends TelegramBot {
   async onInlineQuery (inlineQuery: TelegramBot.InlineQuery) {
     if (inlineQuery.query) {
       const definitions = await UrbanApi.defineTerm(inlineQuery.query)
+      if (!definitions || !definitions.length) {
+        await this.answerInlineQuery(inlineQuery.id, [], {
+          switch_pm_text: strings.noResultsShort,
+          switch_pm_parameter: 'ignore'
+        })
+      }
       await this.answerInlineQuery(inlineQuery.id, inlineResults.getResults(definitions))
     } else {
       await this.answerInlineQuery(inlineQuery.id, [])
@@ -243,6 +249,10 @@ export class UdBot extends TelegramBot {
         if (command.args.length <= 0) {
           await this.sendMessage(command.message.chat.id, strings.commands.start)
           break
+        }
+
+        if (command.args[0] === 'ignore') {
+          return
         }
 
         let word = formatter.decompress(command.args[0])
