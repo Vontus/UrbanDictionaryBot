@@ -67,10 +67,16 @@ export default {
 
   async parseButtonClick (callbackQuery: CallbackQuery): Promise<UdButtonResponse> {
     if (callbackQuery.data) {
-      let data = formatter.decompress(callbackQuery.data).split('_')
-      let term = data[0]
-      let pos: number = parseInt(data[1], 10)
-      let definitions = await UrbanApi.defineTerm(term)
+      const word = formatter.decompress(callbackQuery.data)
+
+      if (!word) {
+        throw new Error('Word is null')
+      }
+
+      const data = word.split('_')
+      const term = data[0]
+      const pos: number = parseInt(data[1], 10)
+      const definitions = await UrbanApi.defineTerm(term)
 
       return {
         definitions: definitions,

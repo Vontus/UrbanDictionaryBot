@@ -48,7 +48,7 @@ export default {
     return compresser.compressToBase64(text)
   },
 
-  decompress (text: string): string {
+  decompress (text: string): string | null {
     return compresser.decompressFromBase64(text)
   }
 }
