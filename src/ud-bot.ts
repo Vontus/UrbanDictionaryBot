@@ -17,6 +17,7 @@ import formatter from './formatter'
 import { addStats, getStatsFrom } from './storage/stats'
 import { InteractionType } from './storage/stats-data'
 import udChannel from './ud-channel'
+import { UdApiNotAvailableError } from './exceptions/UdApiNotAvailableError'
 
 let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
 let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID, 10) : null
@@ -47,17 +48,24 @@ export class UdBot extends TelegramBot {
   }
 
   async onInlineQuery (inlineQuery: TelegramBot.InlineQuery) {
-    if (inlineQuery.query) {
-      const definitions = await UrbanApi.defineTerm(inlineQuery.query)
-      if (!definitions || !definitions.length) {
-        await this.answerInlineQuery(inlineQuery.id, [], {
-          switch_pm_text: strings.noResultsShort,
-          switch_pm_parameter: 'ignore'
-        })
+    try {
+      if (inlineQuery.query) {
+        const definitions = await UrbanApi.defineTerm(inlineQuery.query)
+        if (!definitions || !definitions.length) {
+          await this.answerInlineQuery(inlineQuery.id, [], {
+            switch_pm_text: strings.noResultsShort,
+            switch_pm_parameter: 'ignore'
+          })
+        }
+        await this.answerInlineQuery(inlineQuery.id, inlineResults.getResults(definitions))
+      } else {
+        await this.answerInlineQuery(inlineQuery.id, [])
       }
-      await this.answerInlineQuery(inlineQuery.id, inlineResults.getResults(definitions))
-    } else {
-      await this.answerInlineQuery(inlineQuery.id, [])
+    } catch (error) {
+      await this.handleError(error)
+      const text = error instanceof UdApiNotAvailableError ? strings.apiDownShort : strings.unexpectedErrorShort
+
+      await this.answerInlineQuery(inlineQuery.id, [], { switch_pm_text: text, switch_pm_parameter: 'ignore' })
     }
   }
 
@@ -73,10 +81,10 @@ export class UdBot extends TelegramBot {
         await this.leaveChat(message.chat.id)
       }
     } catch (error) {
-      await Promise.all([
-        this.handleError(error, message),
-        this.sendMessage(message.chat.id, strings.unexpectedError)
-      ])
+      await this.handleError(error, message)
+      const text = error instanceof UdApiNotAvailableError ? error.message : strings.unexpectedError
+
+      await this.sendMessage(message.chat.id, text)
     }
   }
 
@@ -132,22 +140,30 @@ export class UdBot extends TelegramBot {
       return this.answerCallbackQuery(callbackQuery.id)
     }
 
-    let buttonResponse = await udKeyboards.parseButtonClick(callbackQuery)
-    let def = buttonResponse.definitions[buttonResponse.position]
-    let inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse)
+    try {
+      let buttonResponse = await udKeyboards.parseButtonClick(callbackQuery)
+      let def = buttonResponse.definitions[buttonResponse.position]
+      let inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse)
 
-    let editMessOptions: TelegramBot.EditMessageTextOptions = {
-      chat_id: callbackQuery.message.chat.id,
-      disable_web_page_preview: true,
-      message_id: callbackQuery.message.message_id,
-      parse_mode: 'HTML',
-      reply_markup: inlineKeyboard
+      let editMessOptions: TelegramBot.EditMessageTextOptions = {
+        chat_id: callbackQuery.message.chat.id,
+        disable_web_page_preview: true,
+        message_id: callbackQuery.message.message_id,
+        parse_mode: 'HTML',
+        reply_markup: inlineKeyboard
+      }
+
+      return Promise.all([
+        this.editMessageText(templates.definition(def), editMessOptions),
+        addStats(callbackQuery.message.chat.id, InteractionType.ButtonClick)
+      ])
+    } catch (error) {
+      await this.handleError(error)
+      const text = error instanceof UdApiNotAvailableError ? strings.apiDown : strings.unexpectedError
+
+      await this.answerCallbackQuery(callbackQuery.id, { text })
+
     }
-
-    return Promise.all([
-      this.editMessageText(templates.definition(def), editMessOptions),
-      addStats(callbackQuery.message.chat.id, InteractionType.ButtonClick)
-    ])
   }
 
   async sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean) {
@@ -169,7 +185,7 @@ export class UdBot extends TelegramBot {
 
   async handleError (error: any, message?: TelegramBot.Message) {
     logger.error(error)
-    return this.logToTelegram(error.message, message ? {
+    await this.logToTelegram(error.message, message ? {
       text: message.text,
       chatId: message.chat.id,
       username: message.from ? message.from.username : null

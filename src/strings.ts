@@ -5,6 +5,9 @@ export default {
   arabicResponse: 'This bot is only available in English.\nاین ربات فقط به زبان انگلیسی کار می‌کند.',
   donateLink: 'https://www.buymeacoffee.com/vontus',
   unexpectedError: 'There was an unexpected error when trying to fulfill your request.',
+  unexpectedErrorShort: 'Unexpected error',
+  apiDown: 'The Urban Dictionary API is currently not available.',
+  apiDownShort: "The Urban Dictionary API isn't working",
 
   commands: {
     start: 'Type the word or expression you want to search.',

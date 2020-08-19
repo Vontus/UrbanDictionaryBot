@@ -1,7 +1,8 @@
-import axios, { AxiosPromise, AxiosTransformer, AxiosRequestConfig } from 'axios'
+import axios, { AxiosTransformer } from 'axios'
 import cache from './ud-cache'
 import { UdDefinition } from './ud-definition'
 import logger from '../logger'
+import { UdApiNotAvailableError } from '../exceptions/UdApiNotAvailableError'
 
 let urbanUrl: string = 'http://api.urbandictionary.com/v0/'
 
@@ -39,12 +40,18 @@ export default {
 }
 
 async function udRequest (method: string, params?: any) {
-  return axios.request<UdDefinition[]>({
-    method: 'GET',
-    url: urbanUrl + method,
-    params,
-    transformResponse: getAxiosTransformer()
-  })
+  try {
+    return await axios.request<UdDefinition[]>({
+      method: 'GET',
+      url: urbanUrl + method,
+      timeout: 2000,
+      params,
+      transformResponse: getAxiosTransformer()
+    })
+  } catch (error) {
+    logger.error(error)
+    throw new UdApiNotAvailableError()
+  }
 }
 
 function getAxiosTransformer (): AxiosTransformer[] {
