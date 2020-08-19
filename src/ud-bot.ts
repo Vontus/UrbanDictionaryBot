@@ -56,14 +56,21 @@ export class UdBot extends TelegramBot {
   }
 
   async routeMessage (message: TelegramBot.Message) {
-    if (message.chat.id === logChatId) {
-      return this.handleLogChat(message)
-    }
+    try {
+      if (message.chat.id === logChatId) {
+        await this.handleLogChat(message)
+      }
 
-    if (message.chat.type === 'private') {
-      return this.handlePrivateChat(message)
-    } else if (message.left_chat_member && message.left_chat_member.id !== userBot.id) {
-      return this.leaveChat(message.chat.id)
+      if (message.chat.type === 'private') {
+        await this.handlePrivateChat(message)
+      } else if (message.left_chat_member && message.left_chat_member.id !== userBot.id) {
+        await this.leaveChat(message.chat.id)
+      }
+    } catch (error) {
+      await Promise.all([
+        this.handleError(error, message),
+        this.sendMessage(message.chat.id, strings.unexpectedError)
+      ])
     }
   }
 
@@ -84,26 +91,23 @@ export class UdBot extends TelegramBot {
 
     // Or else...
     return Promise.all([
-      this.handleUdQuery(message),
+      this.handleUdQuery(message.text, message.chat.id),
       addStats(message.chat.id, InteractionType.Message)
     ])
   }
 
-  async handleUdQuery (message: TelegramBot.Message) {
-    if (message.text) {
-      let text: string = message.text
+  async handleUdQuery (text: string, chatId: number) {
+    const defs = await UrbanApi.defineTerm(text)
 
-      const defs = await UrbanApi.defineTerm(text)
-
-      if (defs && defs.length > 0) {
-        return this.sendDefinition(message.chat.id, defs, 0, true)
-      } else {
-        return this.sendMessage(
-          message.chat.id,
-          format(strings.noResults, text),
-          { parse_mode: 'HTML' })
-      }
+    if (!defs || defs.length <= 0) {
+      return this.sendMessage(
+        chatId,
+        format(strings.noResults, text),
+        { parse_mode: 'HTML' }
+      )
     }
+
+    return this.sendDefinition(chatId, defs, 0, true)
   }
 
   async handleLogChat (message: TelegramBot.Message) {
@@ -157,14 +161,25 @@ export class UdBot extends TelegramBot {
     return this.sendMessage(chat.id, strings.help)
   }
 
-  async handleError (error: any) {
+  async handleError (error: any, message?: TelegramBot.Message) {
     logger.error(error)
-    return this.logToTelegram(error)
+    return this.logToTelegram(error.message, message ? {
+      text: message.text,
+      chatId: message.chat.id,
+      username: message.from ? message.from.username : null
+    } : null)
   }
 
-  async logToTelegram (message: string) {
+  async logToTelegram (message: string, moreInfo?: any) {
     if (logChatId) {
-      return this.sendMessage(logChatId, message)
+      let msg = message
+
+      if (moreInfo) {
+        msg += '\n\n'
+        msg += JSON.stringify(moreInfo)
+      }
+
+      return this.sendMessage(logChatId, msg)
     }
   }
 
@@ -233,8 +248,7 @@ export class UdBot extends TelegramBot {
         let word = formatter.decompress(command.args[0])
 
         if (!word) {
-          await this.sendMessage(command.message.chat.id, strings.unexpectedError)
-          break
+          throw new Error('Word is null')
         }
 
         let defs = (await UrbanApi.defineTerm(word))
