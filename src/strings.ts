@@ -3,6 +3,7 @@ export default {
   noResults: "¯\\_(ツ)_/¯\nThere aren't any definitions for <b>{0}</b> yet.",
   arabicResponse: 'This bot is only available in English.\nاین ربات فقط به زبان انگلیسی کار می‌کند.',
   donateLink: 'https://www.buymeacoffee.com/vontus',
+  unexpectedError: 'There was an unexpected error when trying to fulfill your request.',
 
   commands: {
     start: 'Type the word or expression you want to search.',

@@ -225,13 +225,20 @@ export class UdBot extends TelegramBot {
   async handleCommand (command: BotCommand) {
     switch (command.label) {
       case 'start':
-        if (command.args.length > 0) {
-          let word = formatter.decompress(command.args[0])
-          let defs = (await UrbanApi.defineTerm(word))
-          await this.sendDefinition(command.message.chat.id, defs, 0, true)
-        } else {
+        if (command.args.length <= 0) {
           await this.sendMessage(command.message.chat.id, strings.commands.start)
+          break
         }
+
+        let word = formatter.decompress(command.args[0])
+
+        if (!word) {
+          await this.sendMessage(command.message.chat.id, strings.unexpectedError)
+          break
+        }
+
+        let defs = (await UrbanApi.defineTerm(word))
+        await this.sendDefinition(command.message.chat.id, defs, 0, true)
         break
       case 'about':
         await this.sendMessage(
