@@ -6,7 +6,7 @@ export default {
   donateLink: 'https://www.buymeacoffee.com/vontus',
   unexpectedError: 'There was an unexpected error when trying to fulfill your request.',
   unexpectedErrorShort: 'Unexpected error',
-  apiDown: 'The Urban Dictionary API is currently not available.',
+  apiDown: 'The Urban Dictionary API is currently not available, or there was an error with your query.',
   apiDownShort: "The Urban Dictionary API isn't working",
 
   commands: {

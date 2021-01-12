@@ -3,16 +3,14 @@ import axios from 'axios'
 import { UdChannelDef } from './ud-channel-def'
 const url = 'https://www.urbandictionary.com/'
 
-const DEFAULT_PAGE = 1
-
 export default {
-  async getPageDefinitions (page?: number): Promise<UdChannelDef[]> {
-    page = page || DEFAULT_PAGE
+  async getPageDefinitions (page: number = 1): Promise<UdChannelDef[]> {
+    const params = page !== 1 ? { page } : null
 
     const html = (await axios.request<string>({
       method: 'GET',
       url: url,
-      params: { page }
+      params
     })).data
 
     const defs: UdChannelDef[] = []
