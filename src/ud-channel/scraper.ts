@@ -5,7 +5,7 @@ const url = 'https://www.urbandictionary.com/'
 
 export default {
   async getPageDefinitions (page: number = 1): Promise<UdChannelDef[]> {
-    const params = page && page !== 1 ? { page } : null
+    const params = page !== 1 ? { page } : null
 
     const html = (await axios.request<string>({
       method: 'GET',
