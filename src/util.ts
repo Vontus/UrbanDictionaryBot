@@ -12,7 +12,6 @@ export default {
     } else {
       logger.error(`${envVar} is a required environment variable`)
       process.exit(400)
-      return ''
     }
   }
 }
