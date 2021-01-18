@@ -42,7 +42,7 @@ export async function addStats (userId: number, interactionType: InteractionType
     })
   }
 
-  await jsonfile.writeFile(todayFileName, todayStats, { spaces: 2 })
+  await jsonfile.writeFile(todayFileName, todayStats)
 }
 
 function getFileNameOfDate (date: moment.Moment) {
