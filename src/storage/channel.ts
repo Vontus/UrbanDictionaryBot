@@ -15,7 +15,7 @@ async function saveSentChannelDef (channelDef: UdChannelDef): Promise<void> {
   defs.unshift(channelDef)
   channelData.sentDefinitions = defs
 
-  return writeChannelFile(channelData)
+  return await writeChannelFile(channelData)
 }
 
 /**
@@ -39,14 +39,14 @@ async function getFirstUnsentDef (searchDefs: UdChannelDef[]): Promise<UdChannel
 
 async function getChannelData (): Promise<ChannelData> {
   if (fs.existsSync(channelFile)) {
-    return jsonfile.readFile(channelFile)
+    return await jsonfile.readFile(channelFile)
   } else {
     return new ChannelData()
   }
 }
 
 async function writeChannelFile (chanData: ChannelData) {
-  return jsonfile.writeFile(channelFile, chanData, { spaces: 2 })
+  return await jsonfile.writeFile(channelFile, chanData, { spaces: 2 })
 }
 
 export default {

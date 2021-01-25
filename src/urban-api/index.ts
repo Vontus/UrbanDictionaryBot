@@ -4,27 +4,26 @@ import { UdDefinition } from './ud-definition'
 import logger from '../logger'
 import { UdApiNotAvailableError } from '../exceptions/UdApiNotAvailableError'
 
-let urbanUrl: string = 'http://api.urbandictionary.com/v0/'
+const urbanUrl: string = 'http://api.urbandictionary.com/v0/'
 
 export default {
   async defineDefId (defid: number): Promise<UdDefinition> {
     logger.log(`asking ud for ${defid}...`)
-    let data = (await udRequest('define', { defid })).data
+    const data = (await udRequest('define', { defid })).data
     if (data && data.length > 0) {
       cache.addDefinitions(data)
     }
     return data[0]
   },
   async defineTerm (term: string): Promise<UdDefinition[]> {
-
-    let cacheDefinitions: UdDefinition[] = cache.getDefinitions(term)
+    const cacheDefinitions: UdDefinition[] = cache.getDefinitions(term)
 
     if (cacheDefinitions) {
       logger.log(`serving "${term}" from cache...`)
       return cacheDefinitions
     } else {
       logger.log(`asking ud for "${term}"...`)
-      let data = (await udRequest('define', { term })).data
+      const data = (await udRequest('define', { term })).data
       if (data && data.length > 0) {
         cache.addDefinitions(data)
       }
@@ -33,7 +32,7 @@ export default {
   },
 
   async random (): Promise<UdDefinition[]> {
-    let data = (await udRequest('random')).data
+    const data = (await udRequest('random')).data
     cache.addDefinitions(data)
     return data
   }
@@ -59,7 +58,7 @@ function getAxiosTransformer (): AxiosTransformer[] {
   arr = arr.concat(
     axios.defaults.transformResponse ? axios.defaults.transformResponse : [],
     (r: any) => {
-      let defs: UdDefinition[] = []
+      const defs: UdDefinition[] = []
       if (r.list) {
         r.list.forEach((element: any) => {
           defs.push(new UdDefinition(element))

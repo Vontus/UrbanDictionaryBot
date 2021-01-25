@@ -35,8 +35,8 @@ export class UdDefinition {
   }
 
   findLinks (text: string): UdWordLink[] {
-    let links: UdWordLink[] = []
-    let matches = text.match(wordLinkRegex)
+    const links: UdWordLink[] = []
+    const matches = text.match(wordLinkRegex)
     if (matches) {
       for (let i = 0; i < matches.length; i++) {
         links.push(new UdWordLink('test', 1))
@@ -48,10 +48,10 @@ export class UdDefinition {
 
   formatLinks (text: string, prefix?: string, suffix?: string): string {
     return text.replace(wordLinkRegex, (match) => {
-      let word = match.slice(1, -1)
-      return (prefix ? prefix : '') +
+      const word = match.slice(1, -1)
+      return (prefix || '') +
         formatter.link(word, formatter.startUrl(word)) +
-        (suffix ? suffix : '')
+        (suffix || '')
     })
   }
 }

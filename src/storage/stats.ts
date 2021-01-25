@@ -51,7 +51,7 @@ function getFileNameOfDate (date: moment.Moment) {
 
 export async function getAllStats (date: moment.Moment) {
   const dateFileName = getFileNameOfDate(date)
-  return jsonfile.readFile(dateFileName)
+  return await jsonfile.readFile(dateFileName)
 }
 
 export async function getStatsFrom (momentDay: moment.Moment) {

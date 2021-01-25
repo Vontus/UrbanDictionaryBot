@@ -35,11 +35,10 @@ export default {
         await this.sendWord(channelId, true)
       })
     }
-
   },
 
   async sendWord (chatId: string, saveWotd: boolean) {
-    const promises: Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     promises.push(bot.logToTelegram('Retrieving current WOTD...'))
     logger.info('Retrieving current WOTD...')
 

@@ -4,11 +4,11 @@ interface IDictionary {
   [index: string]: UdDefinition[]
 }
 
-let cache = {} as IDictionary
+const cache = {} as IDictionary
 
 export default {
   addDefinitions (definitions: UdDefinition[]) {
-    let word: string = definitions[0].word
+    const word: string = definitions[0].word
     cache[normalizeWord(word)] = definitions
   },
 
