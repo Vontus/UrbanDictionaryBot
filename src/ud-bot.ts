@@ -305,6 +305,8 @@ export class UdBot extends TelegramBot {
         )
         break
       case 'help':
+        await this.sendHelp(command.message.chat)
+        break
       default:
         if (ownerId != null && command.message.from?.id === ownerId) {
           await this.handleAdminCommand(command)
