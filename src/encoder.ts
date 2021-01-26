@@ -1,4 +1,4 @@
-export default (toEncode: string) => {
+export default (toEncode: string): string => {
   return toEncode
     .replace(new RegExp('&', 'g'), '&amp;')
     .replace(new RegExp('<', 'g'), '&lt;')

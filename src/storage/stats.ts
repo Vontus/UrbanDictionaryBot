@@ -5,7 +5,7 @@ import { InteractionType, IStatsData } from './stats-data'
 import * as moment from 'moment'
 import { groupBy, flatten, sumBy, mapValues, uniqBy } from 'lodash'
 
-const statsFolder = path.join(process.env.DATA_PATH || './data/', 'stats/')
+const statsFolder = path.join(process.env.DATA_PATH ?? './data/', 'stats/')
 
 export async function addStats (userId: number, interactionType: InteractionType): Promise<void> {
   const today = moment()
@@ -22,9 +22,9 @@ export async function addStats (userId: number, interactionType: InteractionType
 
   const userStats = todayStats.find(userStats => userStats.userId === userId)
 
-  if (userStats) {
+  if (userStats !== undefined) {
     const interaction = userStats.interactions.find(interaction => interaction.interactionType === interactionType)
-    if (interaction) {
+    if (interaction !== undefined) {
       interaction.amount++
     } else {
       userStats.interactions.push({
@@ -45,16 +45,16 @@ export async function addStats (userId: number, interactionType: InteractionType
   await jsonfile.writeFile(todayFileName, todayStats)
 }
 
-function getFileNameOfDate (date: moment.Moment) {
+function getFileNameOfDate (date: moment.Moment): string {
   return path.join(statsFolder, date.format('YYYY-MM-DD') + '.json')
 }
 
-export async function getAllStats (date: moment.Moment) {
+export async function getAllStats (date: moment.Moment): Promise<any> {
   const dateFileName = getFileNameOfDate(date)
-  return jsonfile.readFile(dateFileName)
+  return await jsonfile.readFile(dateFileName)
 }
 
-export async function getStatsFrom (momentDay: moment.Moment) {
+export async function getStatsFrom (momentDay: moment.Moment): Promise<any> {
   const todayFileName = getFileNameOfDate(momentDay)
   const todayStats: IStatsData[] = await jsonfile.readFile(todayFileName)
   const todayInteractionsDuplicated = flatten(todayStats.map(ts => ts.interactions))
@@ -65,5 +65,6 @@ export async function getStatsFrom (momentDay: moment.Moment) {
   )
   const uniqueUsers = uniqBy(todayStats, stat => stat.userId).map(stat => stat.userId).length
 
+  // TODO interface
   return { ...todayInteractions, 'unique-users': uniqueUsers }
 }

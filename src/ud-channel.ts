@@ -1,11 +1,10 @@
 import * as TelegramBot from 'node-telegram-bot-api'
-import scraper from './scraper'
 import * as scheduler from 'node-schedule'
-import logger from '../logger'
-import { bot } from '../index'
-import urbanApi from '../urban-api'
-import templates from '../templates'
-import channelStorage from '../storage/channel'
+import logger from './logger'
+import { bot } from './index'
+import templates from './templates'
+import { getFirstUnsentDef, saveSentChannelDef } from './storage/channel'
+import { getWotds } from './urban-api/scraper'
 
 const channelId: string | undefined = process.env.CHANNEL_ID
 const channelPostTime: string | undefined = process.env.CHANNEL_POST_TIME
@@ -17,12 +16,12 @@ const msgOpts: TelegramBot.SendMessageOptions = {
 
 export default {
   async init () {
-    if (!channelId) {
+    if (channelId === undefined) {
       logger.warn('CHANNEL_ID is not defined, aborting WOTD')
       return
     }
 
-    if (!channelPostTime) {
+    if (channelPostTime === undefined) {
       logger.warn('CHANNEL_POST_TIME is not defined, aborting WOTD')
       return
     }
@@ -31,41 +30,32 @@ export default {
       await this.sendWord(channelId, true)
     } else {
       logger.log(`Scheduling channel posts at ${channelPostTime} ...`)
-      scheduler.scheduleJob(channelPostTime, async () => {
-        await this.sendWord(channelId, true)
+      scheduler.scheduleJob(channelPostTime, () => {
+        void this.sendWord(channelId, true)
       })
     }
-
   },
 
   async sendWord (chatId: string, saveWotd: boolean) {
-    const promises: Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     promises.push(bot.logToTelegram('Retrieving current WOTD...'))
     logger.info('Retrieving current WOTD...')
 
-    const scrapedDefinitions = await scraper.getPageDefinitions()
-    logger.info('scraped definitions: ', scrapedDefinitions)
-    const channelDefToSend = await channelStorage.getFirstUnsentDef(scrapedDefinitions)
+    const scrapedDefinitions = await getWotds()
+    const defToSend = await getFirstUnsentDef(scrapedDefinitions)
 
-    if (channelDefToSend) {
-      const defToSend = await urbanApi.defineDefId(channelDefToSend.defId)
-
-      if (!defToSend) {
-        await bot.logToTelegram("Couldn't find WOTD to send")
-        return
-      }
-
+    if (defToSend !== undefined) {
       promises.push(bot.sendMessage(chatId, templates.channelPost(defToSend), msgOpts))
 
       if (saveWotd) {
-        promises.push(channelStorage.saveSentChannelDef(channelDefToSend))
+        promises.push(saveSentChannelDef(defToSend))
       }
 
-      if (channelDefToSend.gif) {
-        promises.push(bot.sendDocument(chatId, channelDefToSend.gif))
+      if (defToSend.gif !== undefined) {
+        promises.push(bot.sendDocument(chatId, defToSend.gif))
       }
 
-      logger.info(`sending definition '${defToSend.defid}' to channel`)
+      logger.info(`sending definition '${defToSend.defId}' to channel`)
     } else {
       promises.push(bot.logToTelegram('No unsent WOTD found'))
       logger.info('No unsent WOTD found')

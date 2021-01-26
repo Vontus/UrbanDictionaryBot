@@ -1,9 +1,9 @@
-import { UdChannelDef } from '../ud-channel/ud-channel-def'
+import { UdDefinition } from '../urban-api/ud-definition'
 
 export class ChannelData {
-  public sentDefinitions: UdChannelDef[]
+  public sentDefinitions: UdDefinition[]
 
-  public constructor (sentDefinitions?: UdChannelDef[]) {
-    this.sentDefinitions = sentDefinitions || []
+  public constructor (sentDefinitions?: UdDefinition[]) {
+    this.sentDefinitions = sentDefinitions ?? []
   }
 }

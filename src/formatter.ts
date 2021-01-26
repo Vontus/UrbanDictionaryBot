@@ -4,7 +4,7 @@ import * as compresser from 'lz-string'
 
 let botUsername: string
 
-if (process.env.BOT_USERNAME) {
+if (process.env.BOT_USERNAME != null) {
   botUsername = process.env.BOT_USERNAME
 }
 
@@ -29,15 +29,15 @@ export default {
   },
 
   link (description: string, url: string) {
-    return `<a href=\"${url}\">${description}</a>`
+    return `<a href="${url}">${description}</a>`
   },
 
   mention (user: User, description?: string) {
-    return this.link(description || user.first_name, `tg://user?id=${user.id}`)
+    return this.link(description ?? user.first_name, `tg://user?id=${user.id}`)
   },
 
   startUrl (query: string): string {
-    if (botUsername) {
+    if (botUsername != null) {
       return `https://t.me/${botUsername}?start=${this.compress(query)}`
     }
     logger.error('Bot username not defined in environment')

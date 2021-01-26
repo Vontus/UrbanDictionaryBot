@@ -19,8 +19,8 @@ import { InteractionType } from './storage/stats-data'
 import udChannel from './ud-channel'
 import { UdApiNotAvailableError } from './exceptions/UdApiNotAvailableError'
 
-let logChatId: number | null = process.env.LOG_CHAT_ID ? parseInt(process.env.LOG_CHAT_ID, 10) : null
-let ownerId: number | null = process.env.OWNER_ID ? parseInt(process.env.OWNER_ID, 10) : null
+const logChatId: number | null = process.env.LOG_CHAT_ID != null ? parseInt(process.env.LOG_CHAT_ID, 10) : null
+const ownerId: number | null = process.env.OWNER_ID != null ? parseInt(process.env.OWNER_ID, 10) : null
 
 let userBot: TelegramBot.User
 
@@ -28,30 +28,30 @@ export class UdBot extends TelegramBot {
   public constructor (token: string, options: TelegramBot.ConstructorOptions) {
     super(token, options)
 
-    this.on('message', (msg) => this.routeMessage(msg))
-    this.on('error', (error) => this.handleError(error))
-    this.on('callback_query', callbackQuery => this.handleCallbackQuery(callbackQuery))
-    this.on('inline_query', query => this.onInlineQuery(query))
-    this.on('chosen_inline_result', chosenResult => this.onChosenInlineResult(chosenResult))
+    this.on('message', (msg) => { void this.routeMessage(msg) })
+    this.on('error', (error) => void this.handleError(error))
+    this.on('callback_query', callbackQuery => void this.handleCallbackQuery(callbackQuery))
+    this.on('inline_query', query => void this.onInlineQuery(query))
+    this.on('chosen_inline_result', chosenResult => void this.onChosenInlineResult(chosenResult))
 
-    if (logChatId && process.env.STATS_POST_TIME) {
-      scheduler.scheduleJob(process.env.STATS_POST_TIME, async () => {
-        if (logChatId) {
-          await this.sendStats(logChatId, moment())
+    if (logChatId != null && process.env.STATS_POST_TIME != null) {
+      scheduler.scheduleJob(process.env.STATS_POST_TIME, () => {
+        if (logChatId != null) {
+          void this.sendStats(logChatId, moment())
         }
       })
     }
   }
 
-  async onChosenInlineResult (chosenInlineResult: TelegramBot.ChosenInlineResult) {
+  async onChosenInlineResult (chosenInlineResult: TelegramBot.ChosenInlineResult): Promise<void> {
     await addStats(chosenInlineResult.from.id, InteractionType.InlineQuery)
   }
 
-  async onInlineQuery (inlineQuery: TelegramBot.InlineQuery) {
+  async onInlineQuery (inlineQuery: TelegramBot.InlineQuery): Promise<void> {
     try {
-      if (inlineQuery.query) {
+      if (inlineQuery.query != null) {
         const definitions = await UrbanApi.defineTerm(inlineQuery.query)
-        if (!definitions || !definitions.length) {
+        if (definitions == null || definitions.length <= 0) {
           await this.answerInlineQuery(inlineQuery.id, [], {
             switch_pm_text: strings.noResultsShort,
             switch_pm_parameter: 'ignore'
@@ -69,7 +69,7 @@ export class UdBot extends TelegramBot {
     }
   }
 
-  async routeMessage (message: TelegramBot.Message) {
+  async routeMessage (message: TelegramBot.Message): Promise<void> {
     try {
       if (message.chat.id === logChatId) {
         await this.handleLogChat(message)
@@ -77,7 +77,7 @@ export class UdBot extends TelegramBot {
 
       if (message.chat.type === 'private') {
         await this.handlePrivateChat(message)
-      } else if (message.left_chat_member && message.left_chat_member.id !== userBot.id) {
+      } else if (message.left_chat_member != null && message.left_chat_member.id !== userBot.id) {
         await this.leaveChat(message.chat.id)
       }
     } catch (error) {
@@ -88,64 +88,66 @@ export class UdBot extends TelegramBot {
     }
   }
 
-  async handlePrivateChat (message: TelegramBot.Message) {
-    if (!message.text) {
-      return this.sendHelp(message.chat)
+  async handlePrivateChat (message: TelegramBot.Message): Promise<void> {
+    if (message.text == null) {
+      return await this.sendHelp(message.chat)
     }
 
-    let text: string = message.text
+    const text: string = message.text
 
     if (util.isArabic(text)) {
-      return this.sendArabicResponse(message.chat)
+      return await this.sendArabicResponse(message.chat)
     }
 
     if (text[0] === '/') {
-      return this.handleCommand(new BotCommand(message))
+      return await this.handleCommand(new BotCommand(message))
     }
 
-    // Or else...
-    return Promise.all([
+    await Promise.all([
       this.handleUdQuery(message.text, message.chat.id),
       addStats(message.chat.id, InteractionType.Message)
     ])
   }
 
-  async handleUdQuery (text: string, chatId: number) {
+  async handleUdQuery (text: string, chatId: number): Promise<void> {
     const defs = await UrbanApi.defineTerm(text)
 
-    if (!defs || defs.length <= 0) {
-      return this.sendMessage(
+    if (defs == null || defs.length <= 0) {
+      await this.sendMessage(
         chatId,
         format(strings.noResults, text),
         { parse_mode: 'HTML' }
       )
+      return
     }
 
-    return this.sendDefinition(chatId, defs, 0, true)
+    return await this.sendDefinition(chatId, defs, 0, true)
   }
 
-  async handleLogChat (message: TelegramBot.Message) {
-    if (message.text && message.text.startsWith('/') && message.from && message.from.id === ownerId) {
+  async handleLogChat (message: TelegramBot.Message): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    if (message.text?.startsWith('/') && message.from?.id === ownerId) {
       await this.handleAdminCommand(new BotCommand(message))
     }
   }
 
-  async handleCallbackQuery (callbackQuery: TelegramBot.CallbackQuery) {
-    if (!callbackQuery.message) {
+  async handleCallbackQuery (callbackQuery: TelegramBot.CallbackQuery): Promise<void> {
+    if (callbackQuery.message == null) {
       logger.error('No message received from callbackQuery')
       return
     }
 
     if (callbackQuery.data === 'ignore') {
-      return this.answerCallbackQuery(callbackQuery.id)
+      await this.answerCallbackQuery(callbackQuery.id)
+      return
     }
 
     try {
-      let buttonResponse = await udKeyboards.parseButtonClick(callbackQuery)
-      let def = buttonResponse.definitions[buttonResponse.position]
-      let inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse)
+      const buttonResponse = await udKeyboards.parseButtonClick(callbackQuery)
+      const def = buttonResponse.definitions[buttonResponse.position]
+      const inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse)
 
-      let editMessOptions: TelegramBot.EditMessageTextOptions = {
+      const editMessOptions: TelegramBot.EditMessageTextOptions = {
         chat_id: callbackQuery.message.chat.id,
         disable_web_page_preview: true,
         message_id: callbackQuery.message.message_id,
@@ -153,7 +155,7 @@ export class UdBot extends TelegramBot {
         reply_markup: inlineKeyboard
       }
 
-      return Promise.all([
+      await Promise.all([
         this.editMessageText(templates.definition(def), editMessOptions),
         addStats(callbackQuery.message.chat.id, InteractionType.ButtonClick)
       ])
@@ -162,50 +164,49 @@ export class UdBot extends TelegramBot {
       const text = error instanceof UdApiNotAvailableError ? strings.apiDown : strings.unexpectedError
 
       await this.answerCallbackQuery(callbackQuery.id, { text })
-
     }
   }
 
-  async sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean) {
-    let msgOptions: TelegramBot.SendMessageOptions = {
+  async sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean): Promise<void> {
+    const msgOptions: TelegramBot.SendMessageOptions = {
       parse_mode: 'HTML',
       disable_web_page_preview: true,
-      reply_markup: keyboard ? udKeyboards.buildFromDefinition({ definitions: defs, position: 0 }) : undefined
+      reply_markup: keyboard != null ? udKeyboards.buildFromDefinition({ definitions: defs, position: 0 }) : undefined
     }
-    return this.sendMessage(chatId, templates.definition(defs[pos]), msgOptions)
+    await this.sendMessage(chatId, templates.definition(defs[pos]), msgOptions)
   }
 
-  async sendArabicResponse (chat: TelegramBot.Chat) {
-    return this.sendMessage(chat.id, strings.arabicResponse)
+  async sendArabicResponse (chat: TelegramBot.Chat): Promise<void> {
+    await this.sendMessage(chat.id, strings.arabicResponse)
   }
 
-  async sendHelp (chat: TelegramBot.Chat) {
-    return this.sendMessage(chat.id, strings.help)
+  async sendHelp (chat: TelegramBot.Chat): Promise<void> {
+    await this.sendMessage(chat.id, strings.help)
   }
 
-  async handleError (error: any, message?: TelegramBot.Message) {
+  async handleError (error: any, message?: TelegramBot.Message): Promise<void> {
     logger.error(error)
-    await this.logToTelegram(error.message, message ? {
+    await this.logToTelegram(error.message, message != null ? {
       text: message.text,
       chatId: message.chat.id,
-      username: message.from ? message.from.username : null
+      username: message.from?.username
     } : null)
   }
 
-  async logToTelegram (message: string, moreInfo?: any) {
-    if (logChatId) {
+  async logToTelegram (message: string, moreInfo?: any): Promise<void> {
+    if (logChatId != null) {
       let msg = message
 
-      if (moreInfo) {
+      if (moreInfo != null) {
         msg += '\n\n'
         msg += JSON.stringify(moreInfo)
       }
 
-      return this.sendMessage(logChatId, msg)
+      await this.sendMessage(logChatId, msg)
     }
   }
 
-  async handleAdminCommand (command: BotCommand) {
+  async handleAdminCommand (command: BotCommand): Promise<void> {
     try {
       switch (command.label) {
         case 'stats':
@@ -216,18 +217,18 @@ export class UdBot extends TelegramBot {
           break
       }
     } catch (err) {
-      await this.sendMessage(command.message.chat.id, 'Error executing command:\n' + err)
+      await this.sendMessage(command.message.chat.id, `Error executing command:\n${JSON.stringify(err)}`)
       throw err
     }
   }
 
-  async handleWotdCommand (command: BotCommand) {
+  async handleWotdCommand (command: BotCommand): Promise<void> {
     let chatId: string = command.message.chat.id.toString()
     let saveWord: boolean = false
     if (command.args.length > 0) {
       if (command.args[0] === 'ch' || command.args[0] === 'channel') {
         saveWord = true
-        if (process.env.CHANNEL_ID) {
+        if (process.env.CHANNEL_ID != null) {
           chatId = process.env.CHANNEL_ID
         } else {
           throw new Error('CHANNEL_ID is not defined')
@@ -240,45 +241,49 @@ export class UdBot extends TelegramBot {
     await udChannel.sendWord(chatId, saveWord)
   }
 
-  async handleStatsCommand (command: BotCommand) {
-    const { dateFormat, wrongDateFormat, wrongDateOrder } = strings.commands.stats
+  async handleStatsCommand (command: BotCommand): Promise<void> {
+    const { dateFormat, wrongDateFormat } = strings.commands.stats
     const from = command.args[0]
-    const fromMoment = from ? moment(from, dateFormat, true) : moment()
+    const fromMoment = from != null ? moment(from, dateFormat, true) : moment()
 
     if (!fromMoment.isValid()) {
-      return this.sendMessage(command.message.chat.id, format(wrongDateFormat, from, dateFormat))
+      await this.sendMessage(command.message.chat.id, format(wrongDateFormat, from, dateFormat))
     }
 
-    return this.sendStats(command.message.chat.id, fromMoment)
+    await this.sendStats(command.message.chat.id, fromMoment)
   }
 
-  async sendStats (chatId: number, fromMoment: moment.Moment) {
-    const message = fromMoment.isSame(moment(), 'day') ?
-      "Today's Stats:" :
-      'Stats from ' + fromMoment.format(strings.commands.stats.dateFormat)
-    return this.sendMessage(chatId, message + '\n\n' + YAML.stringify(await getStatsFrom(fromMoment)))
+  async sendStats (chatId: number, fromMoment: moment.Moment): Promise<void> {
+    const message = fromMoment.isSame(moment(), 'day')
+      ? "Today's Stats:"
+      : 'Stats from ' + fromMoment.format(strings.commands.stats.dateFormat)
+    await this.sendMessage(chatId, message + '\n\n' + YAML.stringify(await getStatsFrom(fromMoment)))
   }
 
-  async handleCommand (command: BotCommand) {
+  async handleStartCommand (command: BotCommand): Promise<void> {
+    if (command.args.length <= 0) {
+      await this.sendMessage(command.message.chat.id, strings.commands.start)
+      return
+    }
+
+    if (command.args[0] === 'ignore') {
+      return
+    }
+
+    const word = formatter.decompress(command.args[0])
+
+    if (word == null) {
+      throw new Error('Word is null')
+    }
+
+    const defs = (await UrbanApi.defineTerm(word))
+    await this.sendDefinition(command.message.chat.id, defs, 0, true)
+  }
+
+  async handleCommand (command: BotCommand): Promise<void> {
     switch (command.label) {
       case 'start':
-        if (command.args.length <= 0) {
-          await this.sendMessage(command.message.chat.id, strings.commands.start)
-          break
-        }
-
-        if (command.args[0] === 'ignore') {
-          return
-        }
-
-        let word = formatter.decompress(command.args[0])
-
-        if (!word) {
-          throw new Error('Word is null')
-        }
-
-        let defs = (await UrbanApi.defineTerm(word))
-        await this.sendDefinition(command.message.chat.id, defs, 0, true)
+        await this.handleStartCommand(command)
         break
       case 'about':
         await this.sendMessage(
@@ -302,8 +307,10 @@ export class UdBot extends TelegramBot {
         )
         break
       case 'help':
+        await this.sendHelp(command.message.chat)
+        break
       default:
-        if (command.message.from && command.message.from.id === ownerId) {
+        if (ownerId != null && command.message.from?.id === ownerId) {
           await this.handleAdminCommand(command)
         } else {
           await this.sendHelp(command.message.chat)

@@ -1,4 +1,4 @@
-import { InlineQueryResultArticle, InlineKeyboardMarkup } from 'node-telegram-bot-api'
+import { InlineQueryResultArticle } from 'node-telegram-bot-api'
 import { UdDefinition } from './urban-api/ud-definition'
 import templates from './templates'
 import udKeyboards from './ud-keyboards'
@@ -9,7 +9,7 @@ export default {
       return {
         type: 'article',
         title: def.word,
-        id: def.defid.toString(),
+        id: def.defId.toString(),
         description: def.definition,
         reply_markup: udKeyboards.inlineKeyboardResponse(def.word),
         input_message_content: {

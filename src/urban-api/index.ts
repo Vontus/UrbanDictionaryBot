@@ -1,66 +1,73 @@
-import axios, { AxiosTransformer } from 'axios'
+import axios, { AxiosResponse, AxiosTransformer } from 'axios'
 import cache from './ud-cache'
 import { UdDefinition } from './ud-definition'
 import logger from '../logger'
 import { UdApiNotAvailableError } from '../exceptions/UdApiNotAvailableError'
+import { searchTerm } from './scraper'
 
-let urbanUrl: string = 'http://api.urbandictionary.com/v0/'
+const urbanUrl: string = 'http://api.urbandictionary.com/v0/'
 
 export default {
-  async defineDefId (defid: number): Promise<UdDefinition> {
-    logger.log(`asking ud for ${defid}...`)
-    let data = (await udRequest('define', { defid })).data
-    if (data && data.length > 0) {
+  async defineDefId (defId: number): Promise<UdDefinition> {
+    logger.log(`asking ud for ${defId}...`)
+    const data = (await udRequest('define', { defId })).data
+    if (data.length > 0) {
       cache.addDefinitions(data)
     }
     return data[0]
   },
+
   async defineTerm (term: string): Promise<UdDefinition[]> {
+    const cacheDefinitions: UdDefinition[] = cache.getDefinitions(term)
 
-    let cacheDefinitions: UdDefinition[] = cache.getDefinitions(term)
-
-    if (cacheDefinitions) {
+    if (cacheDefinitions != null) {
       logger.log(`serving "${term}" from cache...`)
       return cacheDefinitions
     } else {
       logger.log(`asking ud for "${term}"...`)
-      let data = (await udRequest('define', { term })).data
-      if (data && data.length > 0) {
-        cache.addDefinitions(data)
+      let definitions: UdDefinition[]
+      try {
+        definitions = (await udRequest('define', { term })).data
+      } catch (apiError) {
+        try {
+          definitions = await searchTerm(term)
+        } catch (webError) {
+          logger.error('apiError', apiError)
+          logger.error('webError', webError)
+          throw new UdApiNotAvailableError()
+        }
       }
-      return data
+      if (definitions.length > 0) {
+        cache.addDefinitions(definitions)
+      }
+      return definitions
     }
   },
 
   async random (): Promise<UdDefinition[]> {
-    let data = (await udRequest('random')).data
+    const data = (await udRequest('random')).data
     cache.addDefinitions(data)
     return data
   }
 }
 
-async function udRequest (method: string, params?: any) {
-  try {
-    return await axios.request<UdDefinition[]>({
-      method: 'GET',
-      url: urbanUrl + method,
-      timeout: 2000,
-      params,
-      transformResponse: getAxiosTransformer()
-    })
-  } catch (error) {
-    logger.error(error)
-    throw new UdApiNotAvailableError()
-  }
+async function udRequest (method: string, params?: any): Promise<AxiosResponse<UdDefinition[]>> {
+  return await axios.request<UdDefinition[]>({
+    method: 'GET',
+    url: urbanUrl + method,
+    timeout: 2000,
+    params,
+    transformResponse: getAxiosTransformer()
+  })
 }
 
 function getAxiosTransformer (): AxiosTransformer[] {
   let arr: AxiosTransformer[] = []
   arr = arr.concat(
-    axios.defaults.transformResponse ? axios.defaults.transformResponse : [],
+    axios.defaults.transformResponse ?? [],
     (r: any) => {
-      let defs: UdDefinition[] = []
-      if (r.list) {
+      const defs: UdDefinition[] = []
+      if (r.list != null) {
         r.list.forEach((element: any) => {
           defs.push(new UdDefinition(element))
         })
