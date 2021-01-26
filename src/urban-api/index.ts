@@ -15,10 +15,11 @@ export default {
     }
     return data[0]
   },
+
   async defineTerm (term: string): Promise<UdDefinition[]> {
     const cacheDefinitions: UdDefinition[] = cache.getDefinitions(term)
 
-    if (cacheDefinitions === null) {
+    if (cacheDefinitions != null) {
       logger.log(`serving "${term}" from cache...`)
       return cacheDefinitions
     } else {
