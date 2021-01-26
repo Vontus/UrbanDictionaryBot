@@ -9,7 +9,7 @@ export default {
       return {
         type: 'article',
         title: def.word,
-        id: def.defid.toString(),
+        id: def.defId.toString(),
         description: def.definition,
         reply_markup: udKeyboards.inlineKeyboardResponse(def.word),
         input_message_content: {

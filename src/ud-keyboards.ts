@@ -76,9 +76,9 @@ export default {
       throw new Error('Word is null')
     }
 
-    const data = word.split('_')
-    const term = data[0]
-    const pos: number = parseInt(data[1], 10)
+    const splitterPosition = word.lastIndexOf('_')
+    const term = word.substr(0, splitterPosition)
+    const pos: number = parseInt(word.substr(splitterPosition + 1), 10)
     const definitions = await UrbanApi.defineTerm(term)
 
     return {

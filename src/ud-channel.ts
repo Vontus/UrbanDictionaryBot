@@ -1,11 +1,10 @@
 import * as TelegramBot from 'node-telegram-bot-api'
-import scraper from './scraper'
 import * as scheduler from 'node-schedule'
-import logger from '../logger'
-import { bot } from '../index'
-import urbanApi from '../urban-api'
-import templates from '../templates'
-import channelStorage from '../storage/channel'
+import logger from './logger'
+import { bot } from './index'
+import templates from './templates'
+import { getFirstUnsentDef, saveSentChannelDef } from './storage/channel'
+import { getWotds } from './urban-api/scraper'
 
 const channelId: string | undefined = process.env.CHANNEL_ID
 const channelPostTime: string | undefined = process.env.CHANNEL_POST_TIME
@@ -42,24 +41,21 @@ export default {
     promises.push(bot.logToTelegram('Retrieving current WOTD...'))
     logger.info('Retrieving current WOTD...')
 
-    const scrapedDefinitions = await scraper.getPageDefinitions()
-    logger.info('scraped definitions: ', scrapedDefinitions)
-    const channelDefToSend = await channelStorage.getFirstUnsentDef(scrapedDefinitions)
+    const scrapedDefinitions = await getWotds()
+    const defToSend = await getFirstUnsentDef(scrapedDefinitions)
 
-    if (channelDefToSend !== undefined) {
-      const defToSend = await urbanApi.defineDefId(channelDefToSend.defId)
-
+    if (defToSend !== undefined) {
       promises.push(bot.sendMessage(chatId, templates.channelPost(defToSend), msgOpts))
 
       if (saveWotd) {
-        promises.push(channelStorage.saveSentChannelDef(channelDefToSend))
+        promises.push(saveSentChannelDef(defToSend))
       }
 
-      if (channelDefToSend.gif !== undefined) {
-        promises.push(bot.sendDocument(chatId, channelDefToSend.gif))
+      if (defToSend.gif !== undefined) {
+        promises.push(bot.sendDocument(chatId, defToSend.gif))
       }
 
-      logger.info(`sending definition '${defToSend.defid}' to channel`)
+      logger.info(`sending definition '${defToSend.defId}' to channel`)
     } else {
       promises.push(bot.logToTelegram('No unsent WOTD found'))
       logger.info('No unsent WOTD found')

@@ -3,13 +3,14 @@ import cache from './ud-cache'
 import { UdDefinition } from './ud-definition'
 import logger from '../logger'
 import { UdApiNotAvailableError } from '../exceptions/UdApiNotAvailableError'
+import { searchTerm } from './scraper'
 
 const urbanUrl: string = 'http://api.urbandictionary.com/v0/'
 
 export default {
-  async defineDefId (defid: number): Promise<UdDefinition> {
-    logger.log(`asking ud for ${defid}...`)
-    const data = (await udRequest('define', { defid })).data
+  async defineDefId (defId: number): Promise<UdDefinition> {
+    logger.log(`asking ud for ${defId}...`)
+    const data = (await udRequest('define', { defId })).data
     if (data.length > 0) {
       cache.addDefinitions(data)
     }
@@ -24,11 +25,22 @@ export default {
       return cacheDefinitions
     } else {
       logger.log(`asking ud for "${term}"...`)
-      const data = (await udRequest('define', { term })).data
-      if (data.length > 0) {
-        cache.addDefinitions(data)
+      let definitions: UdDefinition[]
+      try {
+        definitions = (await udRequest('define', { term })).data
+      } catch (apiError) {
+        try {
+          definitions = await searchTerm(term)
+        } catch (webError) {
+          logger.error('apiError', apiError)
+          logger.error('webError', webError)
+          throw new UdApiNotAvailableError()
+        }
       }
-      return data
+      if (definitions.length > 0) {
+        cache.addDefinitions(definitions)
+      }
+      return definitions
     }
   },
 
@@ -40,18 +52,13 @@ export default {
 }
 
 async function udRequest (method: string, params?: any): Promise<AxiosResponse<UdDefinition[]>> {
-  try {
-    return await axios.request<UdDefinition[]>({
-      method: 'GET',
-      url: urbanUrl + method,
-      timeout: 2000,
-      params,
-      transformResponse: getAxiosTransformer()
-    })
-  } catch (error) {
-    logger.error(error)
-    throw new UdApiNotAvailableError()
-  }
+  return await axios.request<UdDefinition[]>({
+    method: 'GET',
+    url: urbanUrl + method,
+    timeout: 2000,
+    params,
+    transformResponse: getAxiosTransformer()
+  })
 }
 
 function getAxiosTransformer (): AxiosTransformer[] {
