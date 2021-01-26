@@ -31,7 +31,7 @@ export default {
     const last = defs.length - 1
 
     function callbackData (position: number): string {
-      return defs.length > 1 ? formatter.compress(`${defs[pos].word} ${position}`) : 'ignore'
+      return defs.length > 1 ? formatter.compress(`${defs[pos].word}_${position}`) : 'ignore'
     }
 
     const navigationButtons = [{
