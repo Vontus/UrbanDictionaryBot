@@ -1,4 +1,4 @@
-import { InlineQueryResultArticle, InlineKeyboardMarkup } from 'node-telegram-bot-api'
+import { InlineQueryResultArticle } from 'node-telegram-bot-api'
 import { UdDefinition } from './urban-api/ud-definition'
 import templates from './templates'
 import udKeyboards from './ud-keyboards'

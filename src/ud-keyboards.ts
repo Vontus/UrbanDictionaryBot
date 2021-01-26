@@ -6,46 +6,46 @@ import strings from './strings'
 
 let channelLink: string
 
-if (process.env.CHANNEL_LINK) {
+if (process.env.CHANNEL_LINK != null) {
   channelLink = process.env.CHANNEL_LINK
 }
 
 export default {
   buildFromDefinition (buttonResponse: UdButtonResponse): InlineKeyboardMarkup {
-    let defs = buttonResponse.definitions
+    const defs = buttonResponse.definitions
 
-    let channelButton = {
+    const channelButton = {
       text: '📣 Urban Dictionary Channel',
       url: channelLink
     }
 
-    let donateButton = {
+    const donateButton = {
       text: '☕️ Buy me a coffee',
       url: strings.donateLink
     }
 
-    let pos = buttonResponse.position
-    let previous = pos - 1
-    let next = pos + 1
-    let first = 0
-    let last = defs.length - 1
+    const pos = buttonResponse.position
+    const previous = pos - 1
+    const next = pos + 1
+    const first = 0
+    const last = defs.length - 1
 
-    function callbackData (position: number) {
-      return defs.length > 1 ? formatter.compress(defs[pos].word + '_' + position) : 'ignore'
+    function callbackData (position: number): string {
+      return defs.length > 1 ? formatter.compress(`${defs[pos].word} ${position}`) : 'ignore'
     }
 
-    let navigationButtons = [{
+    const navigationButtons = [{
       text: '⏪ Previous',
       callback_data: callbackData(pos === first ? last : previous)
     }, {
-      text: (pos + 1) + '/' + defs.length,
+      text: `${pos + 1}/${defs.length}`,
       callback_data: 'ignore'
     }, {
       text: '⏩ Next',
       callback_data: callbackData(pos === last ? first : next)
     }]
 
-    let keyboard: InlineKeyboardMarkup = {
+    const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: [navigationButtons, [donateButton, channelButton]]
     }
 
@@ -53,12 +53,12 @@ export default {
   },
 
   inlineKeyboardResponse (word: string): InlineKeyboardMarkup {
-    let redirectButton = {
+    const redirectButton = {
       text: '➕ More info',
       url: formatter.startUrl(word)
     }
 
-    let keyboard: InlineKeyboardMarkup = {
+    const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: [[redirectButton]]
     }
 
@@ -66,24 +66,25 @@ export default {
   },
 
   async parseButtonClick (callbackQuery: CallbackQuery): Promise<UdButtonResponse> {
-    if (callbackQuery.data) {
-      const word = formatter.decompress(callbackQuery.data)
-
-      if (!word) {
-        throw new Error('Word is null')
-      }
-
-      const data = word.split('_')
-      const term = data[0]
-      const pos: number = parseInt(data[1], 10)
-      const definitions = await UrbanApi.defineTerm(term)
-
-      return {
-        definitions: definitions,
-        position: pos
-      }
+    if (callbackQuery.data == null) {
+      throw new Error('Callback query has no data')
     }
-    return Promise.reject()
+
+    const word = formatter.decompress(callbackQuery.data)
+
+    if (word == null) {
+      throw new Error('Word is null')
+    }
+
+    const data = word.split('_')
+    const term = data[0]
+    const pos: number = parseInt(data[1], 10)
+    const definitions = await UrbanApi.defineTerm(term)
+
+    return {
+      definitions: definitions,
+      position: pos
+    }
   }
 }
 

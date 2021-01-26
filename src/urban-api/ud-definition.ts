@@ -2,7 +2,7 @@ import encode from '../encoder'
 import { UdWordLink } from './ud-word-link'
 import formatter from '../formatter'
 
-const wordLinkRegex = /\[([^\[\]]+)\]/g
+const wordLinkRegex = /\[([^[\]]+)\]/g
 
 export class UdDefinition {
   defid: number
@@ -37,7 +37,7 @@ export class UdDefinition {
   findLinks (text: string): UdWordLink[] {
     const links: UdWordLink[] = []
     const matches = text.match(wordLinkRegex)
-    if (matches) {
+    if (matches != null) {
       for (let i = 0; i < matches.length; i++) {
         links.push(new UdWordLink('test', 1))
       }
@@ -49,9 +49,9 @@ export class UdDefinition {
   formatLinks (text: string, prefix?: string, suffix?: string): string {
     return text.replace(wordLinkRegex, (match) => {
       const word = match.slice(1, -1)
-      return (prefix || '') +
+      return (prefix ?? '') +
         formatter.link(word, formatter.startUrl(word)) +
-        (suffix || '')
+        (suffix ?? '')
     })
   }
 }

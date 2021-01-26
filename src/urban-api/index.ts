@@ -1,4 +1,4 @@
-import axios, { AxiosTransformer } from 'axios'
+import axios, { AxiosResponse, AxiosTransformer } from 'axios'
 import cache from './ud-cache'
 import { UdDefinition } from './ud-definition'
 import logger from '../logger'
@@ -10,7 +10,7 @@ export default {
   async defineDefId (defid: number): Promise<UdDefinition> {
     logger.log(`asking ud for ${defid}...`)
     const data = (await udRequest('define', { defid })).data
-    if (data && data.length > 0) {
+    if (data.length > 0) {
       cache.addDefinitions(data)
     }
     return data[0]
@@ -18,13 +18,13 @@ export default {
   async defineTerm (term: string): Promise<UdDefinition[]> {
     const cacheDefinitions: UdDefinition[] = cache.getDefinitions(term)
 
-    if (cacheDefinitions) {
+    if (cacheDefinitions === null) {
       logger.log(`serving "${term}" from cache...`)
       return cacheDefinitions
     } else {
       logger.log(`asking ud for "${term}"...`)
       const data = (await udRequest('define', { term })).data
-      if (data && data.length > 0) {
+      if (data.length > 0) {
         cache.addDefinitions(data)
       }
       return data
@@ -38,7 +38,7 @@ export default {
   }
 }
 
-async function udRequest (method: string, params?: any) {
+async function udRequest (method: string, params?: any): Promise<AxiosResponse<UdDefinition[]>> {
   try {
     return await axios.request<UdDefinition[]>({
       method: 'GET',
@@ -56,10 +56,10 @@ async function udRequest (method: string, params?: any) {
 function getAxiosTransformer (): AxiosTransformer[] {
   let arr: AxiosTransformer[] = []
   arr = arr.concat(
-    axios.defaults.transformResponse ? axios.defaults.transformResponse : [],
+    axios.defaults.transformResponse ?? [],
     (r: any) => {
       const defs: UdDefinition[] = []
-      if (r.list) {
+      if (r.list != null) {
         r.list.forEach((element: any) => {
           defs.push(new UdDefinition(element))
         })

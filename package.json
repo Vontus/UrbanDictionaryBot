@@ -4,8 +4,8 @@
   "description": "An Urban Dictionary bot for Telegram",
   "scripts": {
     "dev": "nodemon",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
     "start": "node -r ts-node/register src/index.ts",
     "start:inspect": "node --inspect=0.0.0.0:6068 -r ts-node/register src/index.ts"
   },

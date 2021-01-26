@@ -17,12 +17,12 @@ const msgOpts: TelegramBot.SendMessageOptions = {
 
 export default {
   async init () {
-    if (!channelId) {
+    if (channelId === undefined) {
       logger.warn('CHANNEL_ID is not defined, aborting WOTD')
       return
     }
 
-    if (!channelPostTime) {
+    if (channelPostTime === undefined) {
       logger.warn('CHANNEL_POST_TIME is not defined, aborting WOTD')
       return
     }
@@ -31,8 +31,8 @@ export default {
       await this.sendWord(channelId, true)
     } else {
       logger.log(`Scheduling channel posts at ${channelPostTime} ...`)
-      scheduler.scheduleJob(channelPostTime, async () => {
-        await this.sendWord(channelId, true)
+      scheduler.scheduleJob(channelPostTime, () => {
+        void this.sendWord(channelId, true)
       })
     }
   },
@@ -46,13 +46,8 @@ export default {
     logger.info('scraped definitions: ', scrapedDefinitions)
     const channelDefToSend = await channelStorage.getFirstUnsentDef(scrapedDefinitions)
 
-    if (channelDefToSend) {
+    if (channelDefToSend !== undefined) {
       const defToSend = await urbanApi.defineDefId(channelDefToSend.defId)
-
-      if (!defToSend) {
-        await bot.logToTelegram("Couldn't find WOTD to send")
-        return
-      }
 
       promises.push(bot.sendMessage(chatId, templates.channelPost(defToSend), msgOpts))
 
@@ -60,7 +55,7 @@ export default {
         promises.push(channelStorage.saveSentChannelDef(channelDefToSend))
       }
 
-      if (channelDefToSend.gif) {
+      if (channelDefToSend.gif !== undefined) {
         promises.push(bot.sendDocument(chatId, channelDefToSend.gif))
       }
 

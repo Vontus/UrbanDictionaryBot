@@ -4,6 +4,6 @@ export class ChannelData {
   public sentDefinitions: UdChannelDef[]
 
   public constructor (sentDefinitions?: UdChannelDef[]) {
-    this.sentDefinitions = sentDefinitions || []
+    this.sentDefinitions = sentDefinitions ?? []
   }
 }

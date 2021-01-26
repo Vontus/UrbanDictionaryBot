@@ -3,16 +3,16 @@ import udChannel from './ud-channel'
 import logger from './logger'
 import util from './util'
 
-let botToken: string = util.getRequiredEnvVar('BOT_TOKEN')
+const botToken: string = util.getRequiredEnvVar('BOT_TOKEN')
 
 const bot = new UdBot(botToken, { polling: true })
 
 logger.log('Starting...')
 
-const start = async () => {
+const start = async (): Promise<void> => {
   await udChannel.init()
 }
 
-start()
+void start()
 
 export { bot }

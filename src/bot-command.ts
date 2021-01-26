@@ -8,7 +8,7 @@ export class BotCommand {
   message: Message
 
   constructor (mess: Message) {
-    if (!mess.text || !mess.text.startsWith('/')) {
+    if (mess.text == null || !mess.text.startsWith('/')) {
       logger.error('Invalid command message', mess)
       throw new Error('Invalid command message')
     }

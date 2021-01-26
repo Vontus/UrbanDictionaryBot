@@ -4,7 +4,7 @@ interface IDictionary {
   [index: string]: UdDefinition[]
 }
 
-const cache = {} as IDictionary
+const cache: IDictionary = {}
 
 export default {
   addDefinitions (definitions: UdDefinition[]) {

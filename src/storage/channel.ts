@@ -3,10 +3,10 @@ import { ChannelData } from './channel-data'
 import * as jsonfile from 'jsonfile'
 import * as path from 'path'
 import * as fs from 'fs'
-import * as moment from 'moment'
+import moment from 'moment'
 
-const channelFile = path.join(process.env.DATA_PATH || '.', 'channel.json')
-const maxChannelDefs = process.env.MAX_CHANNEL_DEFS ? parseInt(process.env.MAX_CHANNEL_DEFS, 10) : 10
+const channelFile = path.join(process.env.DATA_PATH ?? '.', 'channel.json')
+const maxChannelDefs = parseInt(process.env.MAX_CHANNEL_DEFS ?? '10')
 
 async function saveSentChannelDef (channelDef: UdChannelDef): Promise<void> {
   const channelData = await getChannelData()
@@ -29,9 +29,9 @@ async function getFirstUnsentDef (searchDefs: UdChannelDef[]): Promise<UdChannel
   const def = searchDefs
     .sort(def => moment(def.date, 'MMM D').unix())
     .find(
-      searchDef => !sentDefs.find(
+      searchDef => sentDefs.find(
         sentDef => sentDef.defId === searchDef.defId
-      )
+      ) !== undefined
     )
 
   return def
@@ -45,7 +45,7 @@ async function getChannelData (): Promise<ChannelData> {
   }
 }
 
-async function writeChannelFile (chanData: ChannelData) {
+async function writeChannelFile (chanData: ChannelData): Promise<void> {
   return await jsonfile.writeFile(channelFile, chanData, { spaces: 2 })
 }
 

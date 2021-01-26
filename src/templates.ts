@@ -2,9 +2,9 @@ import * as Fs from 'fs'
 import * as format from 'string-template'
 import { UdDefinition } from './urban-api/ud-definition'
 
-let definitionTemplate = readTemplate('definition')
-let channelPostTemplate = readTemplate('channel-post')
-let inlineDefinitionTemplate = readTemplate('inline-definition')
+const definitionTemplate = readTemplate('definition')
+const channelPostTemplate = readTemplate('channel-post')
+const inlineDefinitionTemplate = readTemplate('inline-definition')
 
 export default {
   definition (data: UdDefinition): string {
