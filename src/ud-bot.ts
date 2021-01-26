@@ -118,6 +118,7 @@ export class UdBot extends TelegramBot {
         format(strings.noResults, text),
         { parse_mode: 'HTML' }
       )
+      return
     }
 
     return await this.sendDefinition(chatId, defs, 0, true)
