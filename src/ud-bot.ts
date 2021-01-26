@@ -138,6 +138,7 @@ export class UdBot extends TelegramBot {
 
     if (callbackQuery.data === 'ignore') {
       await this.answerCallbackQuery(callbackQuery.id)
+      return
     }
 
     try {
