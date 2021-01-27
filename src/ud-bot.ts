@@ -49,7 +49,7 @@ export class UdBot extends TelegramBot {
 
   async onInlineQuery (inlineQuery: TelegramBot.InlineQuery): Promise<void> {
     try {
-      if (inlineQuery.query != null) {
+      if (inlineQuery.query != null && inlineQuery.query.length > 0) {
         const definitions = await UrbanApi.defineTerm(inlineQuery.query)
         if (definitions == null || definitions.length <= 0) {
           await this.answerInlineQuery(inlineQuery.id, [], {
