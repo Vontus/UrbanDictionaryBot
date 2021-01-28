@@ -3,7 +3,7 @@ import * as scheduler from 'node-schedule'
 import logger from './logger'
 import { bot } from './index'
 import templates from './templates'
-import { getFirstUnsentDef, saveSentChannelDef } from './storage/channel'
+import { getFirstUnsentDef, saveSentChannelDefId } from './storage/channel'
 import { getWotds } from './urban-api/scraper'
 
 const channelId: string | undefined = process.env.CHANNEL_ID
@@ -48,14 +48,14 @@ export default {
       promises.push(bot.sendMessage(chatId, templates.channelPost(defToSend), msgOpts))
 
       if (saveWotd) {
-        promises.push(saveSentChannelDef(defToSend))
+        promises.push(saveSentChannelDefId(defToSend.defId))
       }
 
       if (defToSend.gif !== undefined) {
         promises.push(bot.sendDocument(chatId, defToSend.gif))
       }
 
-      logger.info(`sending definition '${defToSend.defId}' to channel`)
+      logger.info(`sending wotd '${defToSend.word}' to channel`)
     } else {
       promises.push(bot.logToTelegram('No unsent WOTD found'))
       logger.info('No unsent WOTD found')
