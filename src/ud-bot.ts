@@ -34,10 +34,14 @@ export class UdBot extends TelegramBot {
     this.on('inline_query', query => void this.onInlineQuery(query))
     this.on('chosen_inline_result', chosenResult => void this.onChosenInlineResult(chosenResult))
 
+    void this.schedulePostStats()
+  }
+
+  async schedulePostStats (): Promise<void> {
     if (logChatId != null && process.env.STATS_POST_TIME != null) {
       scheduler.scheduleJob(process.env.STATS_POST_TIME, () => {
         if (logChatId != null) {
-          void this.sendStats(logChatId, moment())
+          void this.sendStats(logChatId, moment().subtract(1, 'day'))
         }
       })
     }
