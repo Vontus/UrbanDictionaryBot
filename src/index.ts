@@ -5,9 +5,8 @@ import util from './util'
 
 const botToken: string = util.getRequiredEnvVar('BOT_TOKEN')
 
-const bot = new UdBot(botToken, { polling: true })
-
 logger.log('Starting...')
+const bot = new UdBot(botToken, { polling: true })
 
 const start = async (): Promise<void> => {
   await udChannel.init()

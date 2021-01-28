@@ -29,7 +29,7 @@ export default {
     if (channelPostTime === 'ONSTART') {
       await this.sendWord(channelId, true)
     } else {
-      logger.log(`Scheduling channel posts at ${channelPostTime} ...`)
+      logger.log(`Scheduling channel WOTD at ${channelPostTime}`)
       scheduler.scheduleJob(channelPostTime, () => {
         void this.sendWord(channelId, true)
       })

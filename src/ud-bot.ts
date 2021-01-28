@@ -38,8 +38,10 @@ export class UdBot extends TelegramBot {
   }
 
   async schedulePostStats (): Promise<void> {
-    if (logChatId != null && process.env.STATS_POST_TIME != null) {
-      scheduler.scheduleJob(process.env.STATS_POST_TIME, () => {
+    const statsPostTime = process.env.STATS_POST_TIME
+    if (logChatId != null && statsPostTime != null) {
+      logger.log(`Scheduling posting stats at ${statsPostTime}`)
+      scheduler.scheduleJob(statsPostTime, () => {
         if (logChatId != null) {
           void this.sendStats(logChatId, moment().subtract(1, 'day'))
         }
