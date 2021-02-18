@@ -149,6 +149,7 @@ export class UdBot extends TelegramBot {
     }
 
     try {
+      await this.answerCallbackQuery(callbackQuery.id)
       const buttonResponse = await udKeyboards.parseButtonClick(callbackQuery)
       const def = buttonResponse.definitions[buttonResponse.position]
       const inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse)
@@ -171,7 +172,6 @@ export class UdBot extends TelegramBot {
 
       await this.answerCallbackQuery(callbackQuery.id, { text })
     }
-    await this.answerCallbackQuery(callbackQuery.id)
   }
 
   async sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean): Promise<void> {
