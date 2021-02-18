@@ -171,6 +171,7 @@ export class UdBot extends TelegramBot {
 
       await this.answerCallbackQuery(callbackQuery.id, { text })
     }
+    await this.answerCallbackQuery(callbackQuery.id)
   }
 
   async sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean): Promise<void> {
