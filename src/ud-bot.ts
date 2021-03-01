@@ -149,7 +149,8 @@ export class UdBot extends TelegramBot {
       return
     }
 
-    let text = "";
+    let text
+
     try {
       const buttonResponse = await udKeyboards.parseButtonClick(callbackQuery)
       const def = buttonResponse.definitions[buttonResponse.position]
