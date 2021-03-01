@@ -140,6 +140,7 @@ export class UdBot extends TelegramBot {
   async handleCallbackQuery (callbackQuery: TelegramBot.CallbackQuery): Promise<void> {
     if (callbackQuery.message == null) {
       logger.error('No message received from callbackQuery')
+      await this.answerCallbackQuery(callbackQuery.id)
       return
     }
 
@@ -147,6 +148,8 @@ export class UdBot extends TelegramBot {
       await this.answerCallbackQuery(callbackQuery.id)
       return
     }
+
+    let text
 
     try {
       const buttonResponse = await udKeyboards.parseButtonClick(callbackQuery)
@@ -167,10 +170,9 @@ export class UdBot extends TelegramBot {
       ])
     } catch (error) {
       await this.handleError(error)
-      const text = error instanceof UdApiNotAvailableError ? strings.apiDown : strings.unexpectedError
-
-      await this.answerCallbackQuery(callbackQuery.id, { text })
+      text = error instanceof UdApiNotAvailableError ? strings.apiDown : strings.unexpectedError
     }
+    await this.answerCallbackQuery(callbackQuery.id, { text })
   }
 
   async sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean): Promise<void> {
