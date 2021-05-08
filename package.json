@@ -39,7 +39,7 @@
     "debug": "^4.1.1",
     "fs": "0.0.1-security",
     "jsonfile": "^6.1.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "lz-string": "^1.4.4",
     "moment": "^2.27.0",
     "node-schedule": "^1.3.2",
