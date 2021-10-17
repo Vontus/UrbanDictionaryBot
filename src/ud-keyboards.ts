@@ -3,12 +3,7 @@ import { CallbackQuery, InlineKeyboardMarkup } from 'node-telegram-bot-api'
 import UrbanApi from './urban-api'
 import formatter from './formatter'
 import strings from './strings'
-
-let channelLink: string
-
-if (process.env.CHANNEL_LINK != null) {
-  channelLink = process.env.CHANNEL_LINK
-}
+import { channelLink } from './config'
 
 export default {
   buildFromDefinition (buttonResponse: UdButtonResponse): InlineKeyboardMarkup {

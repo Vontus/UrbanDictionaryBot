@@ -6,7 +6,7 @@ import * as moment from 'moment'
 
 import UrbanApi from './urban-api'
 import templates from './templates'
-import util from './util'
+import { isArabic } from './util'
 import logger from './logger'
 import udKeyboards from './ud-keyboards'
 import inlineResults from './inline-results'
@@ -18,9 +18,7 @@ import { addStats, getStatsFrom } from './storage/stats'
 import { InteractionType } from './storage/stats-data'
 import udChannel from './ud-channel'
 import { UdApiNotAvailableError } from './exceptions/UdApiNotAvailableError'
-
-const logChatId: number | null = process.env.LOG_CHAT_ID != null ? parseInt(process.env.LOG_CHAT_ID, 10) : null
-const ownerId: number | null = process.env.OWNER_ID != null ? parseInt(process.env.OWNER_ID, 10) : null
+import { adminId, channelId, logChatId, statsPostTime } from './config'
 
 let userBot: TelegramBot.User
 
@@ -38,7 +36,6 @@ export class UdBot extends TelegramBot {
   }
 
   async schedulePostStats (): Promise<void> {
-    const statsPostTime = process.env.STATS_POST_TIME
     if (logChatId != null && statsPostTime != null) {
       logger.log(`Scheduling posting stats at ${statsPostTime}`)
       scheduler.scheduleJob(statsPostTime, () => {
@@ -77,7 +74,7 @@ export class UdBot extends TelegramBot {
 
   async routeMessage (message: TelegramBot.Message): Promise<void> {
     try {
-      if (message.chat.id === logChatId) {
+      if (message.chat.id.toString() === logChatId) {
         await this.handleLogChat(message)
       }
 
@@ -101,7 +98,7 @@ export class UdBot extends TelegramBot {
 
     const text: string = message.text
 
-    if (util.isArabic(text)) {
+    if (isArabic(text)) {
       return await this.sendArabicResponse(message.chat)
     }
 
@@ -132,7 +129,7 @@ export class UdBot extends TelegramBot {
 
   async handleLogChat (message: TelegramBot.Message): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (message.text?.startsWith('/') && message.from?.id === ownerId) {
+    if (message.text?.startsWith('/') && adminId != null && message.from?.id.toString() === adminId) {
       await this.handleAdminCommand(new BotCommand(message))
     }
   }
@@ -236,8 +233,8 @@ export class UdBot extends TelegramBot {
     if (command.args.length > 0) {
       if (command.args[0] === 'ch' || command.args[0] === 'channel') {
         saveWord = true
-        if (process.env.CHANNEL_ID != null) {
-          chatId = process.env.CHANNEL_ID
+        if (channelId != null) {
+          chatId = channelId
         } else {
           throw new Error('CHANNEL_ID is not defined')
         }
@@ -261,7 +258,7 @@ export class UdBot extends TelegramBot {
     await this.sendStats(command.message.chat.id, fromMoment)
   }
 
-  async sendStats (chatId: number, fromMoment: moment.Moment): Promise<void> {
+  async sendStats (chatId: number | string, fromMoment: moment.Moment): Promise<void> {
     const message = fromMoment.isSame(moment(), 'day')
       ? "Today's Stats:"
       : 'Stats from ' + fromMoment.format(strings.commands.stats.dateFormat)
@@ -318,7 +315,7 @@ export class UdBot extends TelegramBot {
         await this.sendHelp(command.message.chat)
         break
       default:
-        if (ownerId != null && command.message.from?.id === ownerId) {
+        if (adminId != null && command.message.from?.id.toString() === adminId) {
           await this.handleAdminCommand(command)
         } else {
           await this.sendHelp(command.message.chat)

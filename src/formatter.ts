@@ -1,12 +1,7 @@
 import { User } from 'node-telegram-bot-api'
 import logger from './logger'
 import * as compresser from 'lz-string'
-
-let botUsername: string
-
-if (process.env.BOT_USERNAME != null) {
-  botUsername = process.env.BOT_USERNAME
-}
+import { botUsername } from './config'
 
 export default {
   ITALIC_OPEN_TAG: '<i>',
