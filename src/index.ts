@@ -1,9 +1,7 @@
 import { UdBot } from './ud-bot'
 import udChannel from './ud-channel'
 import logger from './logger'
-import util from './util'
-
-const botToken: string = util.getRequiredEnvVar('BOT_TOKEN')
+import { botToken } from './config'
 
 logger.log('Starting...')
 const bot = new UdBot(botToken, { polling: true })

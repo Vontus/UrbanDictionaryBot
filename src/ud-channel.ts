@@ -5,9 +5,7 @@ import { bot } from './index'
 import templates from './templates'
 import { getFirstUnsentDef, saveSentChannelDefId } from './storage/channel'
 import { getWotds } from './urban-api/scraper'
-
-const channelId: string | undefined = process.env.CHANNEL_ID
-const channelPostTime: string | undefined = process.env.CHANNEL_POST_TIME
+import { channelId, channelPostTime } from './config'
 
 const msgOpts: TelegramBot.SendMessageOptions = {
   parse_mode: 'HTML',
@@ -16,12 +14,12 @@ const msgOpts: TelegramBot.SendMessageOptions = {
 
 export default {
   async init () {
-    if (channelId === undefined) {
+    if (channelId == null) {
       logger.warn('CHANNEL_ID is not defined, aborting WOTD')
       return
     }
 
-    if (channelPostTime === undefined) {
+    if (channelPostTime == null) {
       logger.warn('CHANNEL_POST_TIME is not defined, aborting WOTD')
       return
     }
@@ -31,7 +29,7 @@ export default {
     } else {
       logger.log(`Scheduling channel WOTD at ${channelPostTime}`)
       scheduler.scheduleJob(channelPostTime, () => {
-        void this.sendWord(channelId, true)
+        channelId != null && void this.sendWord(channelId, true)
       })
     }
   },

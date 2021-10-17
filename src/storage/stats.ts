@@ -4,8 +4,9 @@ import * as fs from 'fs'
 import { InteractionType, IStatsData } from './stats-data'
 import * as moment from 'moment'
 import { groupBy, flatten, sumBy, mapValues, uniqBy } from 'lodash'
+import { dataPath } from '../config'
 
-const statsFolder = path.join(process.env.DATA_PATH ?? './data/', 'stats/')
+const statsFolder = path.join(dataPath, 'stats/')
 
 export async function addStats (userId: number, interactionType: InteractionType): Promise<void> {
   const today = moment()

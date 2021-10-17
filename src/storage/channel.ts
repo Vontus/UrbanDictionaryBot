@@ -3,9 +3,9 @@ import * as jsonfile from 'jsonfile'
 import * as path from 'path'
 import * as fs from 'fs'
 import { UdDefinition } from '../urban-api/ud-definition'
+import { dataPath, maxChannelDefs } from '../config'
 
-const channelFile = path.join(process.env.DATA_PATH ?? '.', 'channel.json')
-const maxChannelDefs = parseInt(process.env.MAX_CHANNEL_DEFS ?? '10')
+const channelFile = path.join(dataPath, 'channel.json')
 
 export async function saveSentChannelDefId (channelDefId: number): Promise<void> {
   const channelData = await getChannelData()
