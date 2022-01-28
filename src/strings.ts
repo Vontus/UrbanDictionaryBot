@@ -3,7 +3,7 @@ export default {
   noResults: "¯\\_(ツ)_/¯\nThere aren't any definitions for <b>{0}</b> yet.",
   noResultsShort: 'No results   ¯\\_(ツ)_/¯',
   arabicResponse: 'This bot is only available in English.\nاین ربات فقط به زبان انگلیسی کار می‌کند.',
-  donateLink: 'https://www.buymeacoffee.com/vontus',
+  donateLink: 'https://t.me/UrbanDictionary/1486',
   unexpectedError: 'There was an unexpected error when trying to fulfill your request.',
   unexpectedErrorShort: 'Unexpected error',
   apiDown: 'The Urban Dictionary API is currently not available, or there was an error with your query.',
@@ -12,7 +12,7 @@ export default {
   commands: {
     start: 'Type the word or expression you want to search.',
     about: 'Bot created by @Vontus using this awesome <a href="https://github.com/yagop/node-telegram-bot-api">API</a>.\n\n<a href="https://github.com/Vontus/UrbanDictionaryBot">Bot source</a>',
-    donate: 'Help me stay awake and coding! <a href="https://www.buymeacoffee.com/vontus">Buy me a coffee ☕️</a>.',
+    donate: 'You will be redirected to the Urban Dictionary channel: <a href="https://t.me/UrbanDictionary/1486">💸 Donate</a>.',
     stats: {
       dateFormat: 'YYYY-MM-DD',
       wrongDateFormat: 'Date {0} is not valid. Please use format {1}.',

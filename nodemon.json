@@ -9,5 +9,6 @@
     "src"
   ],
   "exec": "npm run start:inspect",
-  "ext": "ts"
+  "ext": "ts",
+  "legacyWatch": true
 }

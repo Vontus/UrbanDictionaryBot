@@ -15,7 +15,7 @@ export default {
     }
 
     const donateButton = {
-      text: '☕️ Buy me a coffee',
+      text: '💸 Donate',
       url: strings.donateLink
     }
 
