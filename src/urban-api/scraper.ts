@@ -1,4 +1,4 @@
-import * as $ from 'cheerio'
+import $ from 'cheerio'
 import axios from 'axios'
 import { UdDefinition } from './ud-definition'
 
@@ -40,7 +40,7 @@ export async function getWotds (): Promise<UdDefinition[]> {
 
   const defs: UdDefinition[] = []
 
-  $('.def-panel', html).each((_index, element) => {
+  $('.definition', html).each((_index, element) => {
     defs.push(scrapeDefinition(element))
   })
 

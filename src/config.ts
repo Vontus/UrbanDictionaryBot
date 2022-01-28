@@ -1,4 +1,4 @@
-export const botToken = process.env.BOT_TOKEN
+export const botToken = process.env.BOT_TOKEN as string
 export const botUsername = process.env.BOT_USERNAME
 export const logChatId = process.env.LOG_CHAT_ID
 export const adminId = process.env.ADMIN_ID
