@@ -40,7 +40,7 @@ export default {
   },
 
   compress (text: string): string {
-    return compresser.compressToBase64(text)
+    return compresser.compressToBase64(text).replace(/=+$/, '')
   },
 
   decompress (text: string): string | null {
