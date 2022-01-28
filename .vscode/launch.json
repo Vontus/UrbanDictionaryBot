@@ -7,14 +7,13 @@
     {
       "name": "Attach to node",
       "type": "node",
+      "protocol": "inspector",
       "request": "attach",
+      "stopOnEntry": false,
       "restart": true,
-      "sourceMapPathOverrides": {
-        "/usr/src/app/*": "${workspaceRoot}/*"
-        // "webpack:///./~/*": "${workspaceRoot}/node_modules/*",
-        // "webpack:///./*": "${workspaceRoot}/*",
-        // "webpack:///*": "*"
-      },
+      "localRoot": "${workspaceRoot}",
+      "remoteRoot": "/usr/src/app",
+      "sourceMaps": true,
       "port": 6068
     }
   ]

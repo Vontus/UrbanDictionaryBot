@@ -20,10 +20,6 @@ export default {
     }
 
     const pos = buttonResponse.position
-    const previous = pos - 1
-    const next = pos + 1
-    const first = 0
-    const last = defs.length - 1
 
     function callbackData (position: number): string {
       return defs.length > 1 ? formatter.compress(`${defs[pos].word}_${position}`) : 'ignore'
@@ -31,13 +27,13 @@ export default {
 
     const navigationButtons = [{
       text: '⏪ Previous',
-      callback_data: callbackData(pos === first ? last : previous)
+      callback_data: callbackData((pos - 1 + defs.length) % defs.length)
     }, {
       text: `${pos + 1}/${defs.length}`,
-      callback_data: 'ignore'
+      callback_data: callbackData(0)
     }, {
       text: '⏩ Next',
-      callback_data: callbackData(pos === last ? first : next)
+      callback_data: callbackData((pos + 1) % defs.length)
     }]
 
     const keyboard: InlineKeyboardMarkup = {
