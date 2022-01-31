@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, AxiosTransformer } from 'axios'
+import axios, { AxiosResponse, AxiosResponseTransformer } from 'axios'
 import cache from './ud-cache'
 import { UdDefinition } from './ud-definition'
 import logger from '../logger'
@@ -61,8 +61,8 @@ async function udRequest (method: string, params?: any): Promise<AxiosResponse<U
   })
 }
 
-function getAxiosTransformer (): AxiosTransformer[] {
-  let arr: AxiosTransformer[] = []
+function getAxiosTransformer (): AxiosResponseTransformer[] {
+  let arr: AxiosResponseTransformer[] = []
   arr = arr.concat(
     axios.defaults.transformResponse ?? [],
     (r: any) => {
