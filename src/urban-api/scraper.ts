@@ -5,7 +5,7 @@ import { UdDefinition } from './ud-definition'
 const cleanUrl = 'https://www.urbandictionary.com'
 const defineUrl = `${cleanUrl}/define.php`
 
-function scrapeDefinition (htmlElement: CheerioElement): UdDefinition {
+function scrapeDefinition (htmlElement: cheerio.Element): UdDefinition {
   const permalink = $(htmlElement).find('.word').attr('href')
   const def = {
     defid: $(htmlElement).data('defid'),
@@ -74,7 +74,7 @@ export async function searchTerm (term: string): Promise<UdDefinition[]> {
   return defs
 }
 
-function replaceLinks (element: Cheerio): string {
+function replaceLinks (element: cheerio.Cheerio): string {
   element.find('a').each((_index, link) => {
     $(link).html(`[${$(link).text()}]`)
   })
