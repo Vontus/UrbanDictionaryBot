@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   bot:
+    env_file: .env
     build:
       context: .
       dockerfile: production.dockerfile
