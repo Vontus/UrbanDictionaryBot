@@ -1,24 +1,15 @@
 import axios, { AxiosResponse, AxiosResponseTransformer } from 'axios'
-import cache from './ud-cache'
 import { UdDefinition } from './ud-definition'
 import logger from '../logger'
 import { UdApiNotAvailableError } from '../exceptions/UdApiNotAvailableError'
 import { searchTerm } from './scraper'
+import { addSearchCache, getSearchCache } from './ud-cache'
 
 const urbanUrl: string = 'http://api.urbandictionary.com/v0/'
 
 export default {
-  async defineDefId (defId: number): Promise<UdDefinition> {
-    logger.log(`asking ud for ${defId}...`)
-    const data = (await udRequest('define', { defId })).data
-    if (data.length > 0) {
-      cache.addDefinitions(data)
-    }
-    return data[0]
-  },
-
   async defineTerm (term: string): Promise<UdDefinition[]> {
-    const cacheDefinitions: UdDefinition[] = cache.getDefinitions(term)
+    const cacheDefinitions: UdDefinition[] = getSearchCache(term)
 
     if (cacheDefinitions != null) {
       logger.log(`serving "${term}" from cache...`)
@@ -38,16 +29,14 @@ export default {
         }
       }
       if (definitions.length > 0) {
-        cache.addDefinitions(definitions)
+        addSearchCache(term, definitions)
       }
       return definitions
     }
   },
 
   async random (): Promise<UdDefinition[]> {
-    const data = (await udRequest('random')).data
-    cache.addDefinitions(data)
-    return data
+    return (await udRequest('random')).data
   }
 }
 

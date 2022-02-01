@@ -124,7 +124,7 @@ export class UdBot extends TelegramBot {
       return
     }
 
-    return await this.sendDefinition(chatId, defs, 0, true)
+    return await this.sendDefinition(chatId, defs, 0, text)
   }
 
   async handleLogChat (message: TelegramBot.Message): Promise<void> {
@@ -172,11 +172,19 @@ export class UdBot extends TelegramBot {
     await this.answerCallbackQuery(callbackQuery.id, { text })
   }
 
-  async sendDefinition (chatId: number | string, defs: UdDefinition[], pos: number, keyboard?: boolean): Promise<void> {
+  async sendDefinition (
+    chatId: number | string,
+    defs: UdDefinition[],
+    pos: number,
+    keyboardTerm?: string
+  ): Promise<void> {
     const msgOptions: TelegramBot.SendMessageOptions = {
       parse_mode: 'HTML',
       disable_web_page_preview: true,
-      reply_markup: keyboard != null ? udKeyboards.buildFromDefinition({ definitions: defs, position: 0 }) : undefined
+      reply_markup: udKeyboards.buildFromDefinition(
+        keyboardTerm ? 
+        { term: keyboardTerm, definitions: defs, position: 0 }
+        : undefined)
     }
     await this.sendMessage(chatId, templates.definition(defs[pos]), msgOptions)
   }
@@ -282,7 +290,7 @@ export class UdBot extends TelegramBot {
     }
 
     const defs = (await UrbanApi.defineTerm(word))
-    await this.sendDefinition(command.message.chat.id, defs, 0, true)
+    await this.sendDefinition(command.message.chat.id, defs, 0, word)
   }
 
   async handleCommand (command: BotCommand): Promise<void> {
@@ -307,8 +315,7 @@ export class UdBot extends TelegramBot {
         await this.sendDefinition(
           command.message.chat.id,
           await UrbanApi.random(),
-          0,
-          true
+          0
         )
         break
       case 'help':
