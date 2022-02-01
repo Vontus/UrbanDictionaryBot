@@ -4,17 +4,14 @@ interface IDictionary {
   [index: string]: UdDefinition[]
 }
 
-const cache: IDictionary = {}
+const searchCache: IDictionary = {}
 
-export default {
-  addDefinitions (definitions: UdDefinition[]) {
-    const word: string = definitions[0].word
-    cache[normalizeWord(word)] = definitions
-  },
+export function addSearchCache (search: string, definitions: UdDefinition[]) {
+  searchCache[normalizeWord(search)] = definitions
+}
 
-  getDefinitions (word: string) {
-    return cache[normalizeWord(word)]
-  }
+export function getSearchCache (word: string) {
+  return searchCache[normalizeWord(word)]
 }
 
 function normalizeWord (word: string): string {

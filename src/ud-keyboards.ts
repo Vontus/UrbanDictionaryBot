@@ -6,8 +6,10 @@ import strings from './strings'
 import { channelLink } from './config'
 
 export default {
-  buildFromDefinition (buttonResponse: UdButtonResponse): InlineKeyboardMarkup {
-    const defs = buttonResponse.definitions
+  buildFromDefinition (buttonResponse?: UdButtonResponse): InlineKeyboardMarkup {
+    const keyboard: InlineKeyboardMarkup = {
+      inline_keyboard: []
+    }
 
     const channelButton = {
       text: '📣 Urban Dictionary Channel',
@@ -19,26 +21,28 @@ export default {
       url: strings.donateLink
     }
 
-    const pos = buttonResponse.position
+    if (buttonResponse) {
+      const { definitions: defs, position: pos, term } = buttonResponse
+  
+      function callbackData (position: number): string {
+        return defs.length > 1 ? formatter.compress(`${term}_${position}`) : 'ignore'
+      }
+  
+      const navigationButtons = [{
+        text: '⏪ Previous',
+        callback_data: callbackData((pos - 1 + defs.length) % defs.length)
+      }, {
+        text: `${pos + 1}/${defs.length}`,
+        callback_data: pos === 0 ? 'ignore' : callbackData(0)
+      }, {
+        text: '⏩ Next',
+        callback_data: callbackData((pos + 1) % defs.length)
+      }]
 
-    function callbackData (position: number): string {
-      return defs.length > 1 ? formatter.compress(`${defs[pos].word}_${position}`) : 'ignore'
+      keyboard.inline_keyboard.push(navigationButtons)
     }
 
-    const navigationButtons = [{
-      text: '⏪ Previous',
-      callback_data: callbackData((pos - 1 + defs.length) % defs.length)
-    }, {
-      text: `${pos + 1}/${defs.length}`,
-      callback_data: pos === 0 ? 'ignore' : callbackData(0)
-    }, {
-      text: '⏩ Next',
-      callback_data: callbackData((pos + 1) % defs.length)
-    }]
-
-    const keyboard: InlineKeyboardMarkup = {
-      inline_keyboard: [navigationButtons, [donateButton, channelButton]]
-    }
+    keyboard.inline_keyboard.push([donateButton, channelButton])
 
     return keyboard
   },
@@ -68,11 +72,12 @@ export default {
     }
 
     const splitterPosition = word.lastIndexOf('_')
-    const term = word.substr(0, splitterPosition)
-    const pos: number = parseInt(word.substr(splitterPosition + 1), 10)
+    const term = word.substring(0, splitterPosition)
+    const pos: number = parseInt(word.substring(splitterPosition + 1), 10)
     const definitions = await UrbanApi.defineTerm(term)
 
     return {
+      term,
       definitions: definitions,
       position: pos
     }
@@ -81,5 +86,6 @@ export default {
 
 export interface UdButtonResponse {
   definitions: UdDefinition[]
-  position: number
+  position: number,
+  term: string
 }
