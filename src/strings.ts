@@ -10,7 +10,10 @@ export default {
   apiDownShort: "The Urban Dictionary API isn't working",
 
   commands: {
-    start: 'Type the word or expression you want to search.',
+    start: {
+      default:  'Type the word or expression you want to search.',
+      badArgument: 'The argument you provided is not a valid word or expression.',
+    },
     about: 'Bot created by @Vontus using this awesome <a href="https://github.com/yagop/node-telegram-bot-api">API</a>.\n\n<a href="https://github.com/Vontus/UrbanDictionaryBot">Bot source</a>',
     donate: 'You will be redirected to the Urban Dictionary channel: <a href="https://t.me/UrbanDictionary/1486">💸 Donate</a>.',
     stats: {

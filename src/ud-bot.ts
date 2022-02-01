@@ -275,7 +275,7 @@ export class UdBot extends TelegramBot {
 
   async handleStartCommand (command: BotCommand): Promise<void> {
     if (command.args.length <= 0) {
-      await this.sendMessage(command.message.chat.id, strings.commands.start)
+      await this.sendMessage(command.message.chat.id, strings.commands.start.default)
       return
     }
 
@@ -285,8 +285,9 @@ export class UdBot extends TelegramBot {
 
     const word = formatter.decompress(command.args[0])
 
-    if (word == null) {
-      throw new Error('Word is null')
+    if (!word) {
+      await this.sendMessage(command.message.chat.id, strings.commands.start.badArgument)
+      return
     }
 
     const defs = (await UrbanApi.defineTerm(word))
