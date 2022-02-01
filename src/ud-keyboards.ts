@@ -30,7 +30,7 @@ export default {
       callback_data: callbackData((pos - 1 + defs.length) % defs.length)
     }, {
       text: `${pos + 1}/${defs.length}`,
-      callback_data: callbackData(0)
+      callback_data: pos === 0 ? 'ignore' : callbackData(0)
     }, {
       text: '⏩ Next',
       callback_data: callbackData((pos + 1) % defs.length)
