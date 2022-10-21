@@ -79,5 +79,7 @@ function replaceLinks (element: cheerio.Cheerio): string {
     $(link).html(`[${$(link).text()}]`)
   })
 
+  element.find('br').replaceWith('\n')
+
   return element.text()
 }
