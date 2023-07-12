@@ -52,18 +52,26 @@ export class UdBot extends TelegramBot {
 
   async onInlineQuery (inlineQuery: TelegramBot.InlineQuery): Promise<void> {
     try {
-      if (inlineQuery.query != null && inlineQuery.query.length > 0) {
-        const definitions = await UrbanApi.defineTerm(inlineQuery.query)
-        if (definitions == null || definitions.length <= 0) {
-          await this.answerInlineQuery(inlineQuery.id, [], {
-            switch_pm_text: strings.noResultsShort,
-            switch_pm_parameter: 'ignore'
-          })
-        }
-        await this.answerInlineQuery(inlineQuery.id, inlineResults.getResults(definitions))
-      } else {
-        await this.answerInlineQuery(inlineQuery.id, [])
+      if (inlineQuery.query == null || inlineQuery.query.length <= 0) {
+        const randomResult = await UrbanApi.random()
+        await this.answerInlineQuery(inlineQuery.id, inlineResults.getResults(randomResult), {
+          cache_time: 0
+        })
+        return
       }
+      
+      const definitions = await UrbanApi.defineTerm(inlineQuery.query)
+
+      if (definitions == null || definitions.length <= 0) {
+        await this.answerInlineQuery(inlineQuery.id, [], {
+          switch_pm_text: strings.noResultsShort,
+          switch_pm_parameter: 'ignore'
+        })
+        return
+      }
+      
+      await this.answerInlineQuery(inlineQuery.id, inlineResults.getResults(definitions))
+
     } catch (error) {
       await this.handleError(error)
       const text = error instanceof UdApiNotAvailableError ? strings.apiDownShort : strings.unexpectedErrorShort
