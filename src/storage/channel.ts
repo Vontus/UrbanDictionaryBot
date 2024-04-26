@@ -1,43 +1,45 @@
-import { ChannelData } from './channel-data'
-import * as jsonfile from 'jsonfile'
-import * as path from 'path'
-import * as fs from 'fs'
-import { UdDefinition } from '../urban-api/ud-definition'
-import { dataPath, maxChannelDefs } from '../config'
+import { ChannelData } from "./channel-data";
+import * as jsonfile from "jsonfile";
+import * as path from "path";
+import * as fs from "fs";
+import { UdDefinition } from "../urban-api/ud-definition";
+import { dataPath, maxChannelDefs } from "../config";
 
-const channelFile = path.join(dataPath, 'channel.json')
+const channelFile = path.join(dataPath, "channel.json");
 
-export async function saveSentChannelDefId (channelDefId: number): Promise<void> {
-  const channelData = await getChannelData()
+export async function saveSentChannelDefId(
+  channelDefId: number,
+): Promise<void> {
+  const channelData = await getChannelData();
 
-  const defs = channelData.sentDefIds.slice(0, maxChannelDefs - 1)
-  defs.unshift(channelDefId)
-  channelData.sentDefIds = defs
+  const defs = channelData.sentDefIds.slice(0, maxChannelDefs - 1);
+  defs.unshift(channelDefId);
+  channelData.sentDefIds = defs;
 
-  return await writeChannelFile(channelData)
+  return await writeChannelFile(channelData);
 }
 
-export async function getFirstUnsentDef (searchDefs: UdDefinition[]): Promise<UdDefinition | undefined> {
-  const { sentDefIds } = (await getChannelData())
+export async function getFirstUnsentDef(
+  searchDefs: UdDefinition[],
+): Promise<UdDefinition | undefined> {
+  const { sentDefIds } = await getChannelData();
 
-  const def = searchDefs
-    .find(
-      searchDef => sentDefIds.find(
-        sentDefId => sentDefId === searchDef.defId
-      ) == null
-    )
+  const def = searchDefs.find(
+    (searchDef) =>
+      sentDefIds.find((sentDefId) => sentDefId === searchDef.defId) == null,
+  );
 
-  return def
+  return def;
 }
 
-async function getChannelData (): Promise<ChannelData> {
+async function getChannelData(): Promise<ChannelData> {
   if (fs.existsSync(channelFile)) {
-    return await jsonfile.readFile(channelFile)
+    return await jsonfile.readFile(channelFile);
   } else {
-    return new ChannelData()
+    return new ChannelData();
   }
 }
 
-async function writeChannelFile (chanData: ChannelData): Promise<void> {
-  return await jsonfile.writeFile(channelFile, chanData, { spaces: 2 })
+async function writeChannelFile(chanData: ChannelData): Promise<void> {
+  return await jsonfile.writeFile(channelFile, chanData, { spaces: 2 });
 }
