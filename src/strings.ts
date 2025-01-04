@@ -4,7 +4,6 @@ export default {
   noResultsShort: "No results   ¯\\_(ツ)_/¯",
   arabicResponse:
     "This bot is only available in English.\nاین ربات فقط به زبان انگلیسی کار می‌کند.",
-  donateLink: "https://t.me/UrbanDictionary/1486",
   unexpectedError:
     "There was an unexpected error when trying to fulfill your request.",
   unexpectedErrorShort: "Unexpected error",
@@ -20,8 +19,6 @@ export default {
     },
     about:
       'Bot created by @Vontus using this awesome <a href="https://github.com/yagop/node-telegram-bot-api">API</a>.\n\n<a href="https://github.com/Vontus/UrbanDictionaryBot">Bot source</a>',
-    donate:
-      'You will be redirected to the Urban Dictionary channel: <a href="https://t.me/UrbanDictionary/1486">💸 Donate</a>.',
     stats: {
       dateFormat: "YYYY-MM-DD",
       wrongDateFormat: "Date {0} is not valid. Please use format {1}.",

@@ -2,7 +2,6 @@ import { UdDefinition } from "./urban-api/ud-definition";
 import { CallbackQuery, InlineKeyboardMarkup } from "node-telegram-bot-api";
 import UrbanApi from "./urban-api";
 import formatter from "./formatter";
-import strings from "./strings";
 import { channelLink } from "./config";
 
 export default {
@@ -14,11 +13,6 @@ export default {
     const channelButton = {
       text: "📣 Urban Dictionary Channel",
       url: channelLink,
-    };
-
-    const donateButton = {
-      text: "💸 Donate",
-      url: strings.donateLink,
     };
 
     if (buttonResponse) {
@@ -34,15 +28,15 @@ export default {
 
       const navigationButtons = [
         {
-          text: "⏪ Previous",
+          text: "⏪",
           callback_data: callbackData((pos - 1 + defs.length) % defs.length),
         },
         {
-          text: `${pos + 1}/${defs.length}`,
+          text: `${pos + 1} / ${defs.length}`,
           callback_data: pos === 0 ? "ignore" : callbackData(0),
         },
         {
-          text: "⏩ Next",
+          text: "⏩",
           callback_data: callbackData((pos + 1) % defs.length),
         },
       ];
@@ -50,7 +44,7 @@ export default {
       keyboard.inline_keyboard.push(navigationButtons);
     }
 
-    keyboard.inline_keyboard.push([donateButton, channelButton]);
+    keyboard.inline_keyboard.push([channelButton]);
 
     return keyboard;
   },
@@ -69,7 +63,7 @@ export default {
   },
 
   async parseButtonClick(
-    callbackQuery: CallbackQuery,
+    callbackQuery: CallbackQuery
   ): Promise<UdButtonResponse> {
     if (callbackQuery.data == null) {
       throw new Error("Callback query has no data");

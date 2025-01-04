@@ -378,13 +378,6 @@ export class UdBot extends TelegramBot {
           { parse_mode: "HTML", disable_web_page_preview: true },
         );
         break;
-      case "donate":
-        await this.sendMessage(
-          command.message.chat.id,
-          strings.commands.donate,
-          { parse_mode: "HTML", disable_web_page_preview: true },
-        );
-        break;
       case "random":
         await this.sendDefinition(
           command.message.chat.id,
