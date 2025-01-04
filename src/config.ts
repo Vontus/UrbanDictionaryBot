@@ -9,3 +9,6 @@ export const channelId = process.env.CHANNEL_ID;
 export const channelLink = process.env.CHANNEL_LINK;
 export const dataPath = process.env.DATA_PATH ?? "./data/";
 export const maxChannelDefs = parseInt(process.env.MAX_CHANNEL_DEFS ?? "10");
+export const messageCharacterLimit = parseInt(
+  process.env.MESSAGE_CHARACTER_LIMIT ?? "4096",
+);
