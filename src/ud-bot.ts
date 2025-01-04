@@ -1,5 +1,5 @@
 import * as TelegramBot from "node-telegram-bot-api";
-import format from "string-template";
+import * as format from "string-template";
 import { scheduleJob } from "node-schedule";
 import YAML from "yamljs";
 import moment from "moment";
