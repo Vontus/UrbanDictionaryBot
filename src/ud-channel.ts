@@ -62,7 +62,7 @@ export default {
     }
 
     promises.push(
-      bot.sendMessage(chatId, templates.channelPost(defToSend), msgOpts)
+      bot.sendMessage(chatId, templates.channelPost(defToSend), msgOpts),
     );
 
     if (saveWotd) {

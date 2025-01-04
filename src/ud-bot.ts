@@ -20,8 +20,6 @@ import udChannel from "./ud-channel";
 import { UdApiNotAvailableError } from "./exceptions/UdApiNotAvailableError";
 import { adminId, channelId, logChatId, statsPostTime } from "./config";
 
-let userBot: TelegramBot.User;
-
 export class UdBot extends TelegramBot {
   public constructor(token: string, options: TelegramBot.ConstructorOptions) {
     super(token, options);
@@ -111,10 +109,7 @@ export class UdBot extends TelegramBot {
 
       if (message.chat.type === "private") {
         await this.handlePrivateChat(message);
-      } else if (
-        message.left_chat_member != null &&
-        message.left_chat_member.id !== userBot.id
-      ) {
+      } else if (message.left_chat_member != null) {
         await this.leaveChat(message.chat.id);
       }
     } catch (error) {
