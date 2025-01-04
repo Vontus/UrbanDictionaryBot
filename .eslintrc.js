@@ -1,9 +1,12 @@
 module.exports = {
-  extends: 'standard-with-typescript',
-  parserOptions: {
-    project: './tsconfig.json'
-  },
+  parser: "@typescript-eslint/parser",
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+  ],
   rules: {
-    'no-void': 'off'
-  }
-}
+    "no-void": "off",
+  },
+  plugins: ["prettier", "@typescript-eslint"],
+};
