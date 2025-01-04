@@ -19,6 +19,7 @@ import { InteractionType } from "./storage/stats-data";
 import udChannel from "./ud-channel";
 import { UdApiNotAvailableError } from "./exceptions/UdApiNotAvailableError";
 import { adminId, channelId, logChatId, statsPostTime } from "./config";
+import encode from "./encoder";
 
 export class UdBot extends TelegramBot {
   public constructor(token: string, options: TelegramBot.ConstructorOptions) {
@@ -149,7 +150,7 @@ export class UdBot extends TelegramBot {
     const defs = await UrbanApi.defineTerm(text);
 
     if (defs == null || defs.length <= 0) {
-      await this.sendMessage(chatId, format(strings.noResults, text), {
+      await this.sendMessage(chatId, format(strings.noResults, encode(text)), {
         parse_mode: "HTML",
       });
       return;
