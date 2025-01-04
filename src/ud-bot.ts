@@ -18,7 +18,13 @@ import { addStats, getStatsFrom } from "./storage/stats";
 import { InteractionType } from "./storage/stats-data";
 import udChannel from "./ud-channel";
 import { UdApiNotAvailableError } from "./exceptions/UdApiNotAvailableError";
-import { adminId, channelId, logChatId, statsPostTime } from "./config";
+import {
+  adminId,
+  channelId,
+  logChatId,
+  statsPostTime,
+  messageCharacterLimit,
+} from "./config";
 import encode from "./encoder";
 
 export class UdBot extends TelegramBot {
@@ -199,7 +205,7 @@ export class UdBot extends TelegramBot {
       };
 
       await Promise.all([
-        this.editMessageText(templates.definition(def), editMessOptions),
+        this.editMessageText(this.buildDefinition(def), editMessOptions),
         addStats(callbackQuery.message.chat.id, InteractionType.ButtonClick),
       ]);
     } catch (error) {
@@ -211,6 +217,16 @@ export class UdBot extends TelegramBot {
           : strings.unexpectedError;
     }
     await this.answerCallbackQuery(callbackQuery.id, { text });
+  }
+
+  buildDefinition(def: UdDefinition): string {
+    let definitionString = templates.definition(def);
+
+    if (definitionString.length > messageCharacterLimit) {
+      definitionString = format(strings.definitionTooLong, def.permalink);
+    }
+
+    return definitionString;
   }
 
   async sendDefinition(
@@ -228,7 +244,8 @@ export class UdBot extends TelegramBot {
           : undefined,
       ),
     };
-    await this.sendMessage(chatId, templates.definition(defs[pos]), msgOptions);
+    const definitionString = this.buildDefinition(defs[pos]);
+    await this.sendMessage(chatId, definitionString, msgOptions);
   }
 
   async sendArabicResponse(chat: TelegramBot.Chat): Promise<void> {
