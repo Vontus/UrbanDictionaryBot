@@ -5,7 +5,12 @@ import { bot } from "./index";
 import templates from "./templates";
 import { getFirstUnsentDef, saveSentChannelDefId } from "./storage/channel";
 import { getWotds } from "./urban-api/scraper";
-import { channelId, channelPostTime } from "./config";
+import {
+  channelId,
+  channelPostTime,
+  logChatId,
+  wotdAnnouncementTime,
+} from "./config";
 
 const msgOpts: TelegramBot.SendMessageOptions = {
   parse_mode: "HTML",
@@ -24,6 +29,15 @@ export default {
       return;
     }
 
+    if (wotdAnnouncementTime === "ONSTART") {
+      logChatId && (await this.sendWord(logChatId, false));
+    } else if (wotdAnnouncementTime != null) {
+      logger.log(`Scheduling WOTD announcement at ${wotdAnnouncementTime}`);
+      scheduler.scheduleJob(wotdAnnouncementTime, () => {
+        logChatId != null && void this.sendWord(logChatId, false);
+      });
+    }
+
     if (channelPostTime === "ONSTART") {
       await this.sendWord(channelId, true);
     } else {
@@ -36,30 +50,30 @@ export default {
 
   async sendWord(chatId: string, saveWotd: boolean) {
     const promises: Array<Promise<unknown>> = [];
-    promises.push(bot.logToTelegram("Retrieving current WOTD..."));
     logger.info("Retrieving current WOTD...");
 
     const scrapedDefinitions = await getWotds();
     const defToSend = await getFirstUnsentDef(scrapedDefinitions);
 
-    if (defToSend !== undefined) {
-      promises.push(
-        bot.sendMessage(chatId, templates.channelPost(defToSend), msgOpts),
-      );
-
-      if (saveWotd) {
-        promises.push(saveSentChannelDefId(defToSend.defId));
-      }
-
-      if (defToSend.gif !== undefined) {
-        promises.push(bot.sendDocument(chatId, defToSend.gif));
-      }
-
-      logger.info(`sending wotd '${defToSend.word}' to channel`);
-    } else {
+    if (defToSend === undefined) {
       promises.push(bot.logToTelegram("No unsent WOTD found"));
       logger.info("No unsent WOTD found");
+      return;
     }
+
+    promises.push(
+      bot.sendMessage(chatId, templates.channelPost(defToSend), msgOpts)
+    );
+
+    if (saveWotd) {
+      promises.push(saveSentChannelDefId(defToSend.defId));
+    }
+
+    if (defToSend.gif !== undefined) {
+      promises.push(bot.sendDocument(chatId, defToSend.gif));
+    }
+
+    logger.info(`sending wotd '${defToSend.word}' to channel`);
     await Promise.all(promises);
   },
 };
