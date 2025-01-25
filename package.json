@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "pretty": "prettier --write .",
-    "start": "node -r ts-node/register src/index.ts",
+    "start": "node -r dotenv/config -r ts-node/register src/index.ts",
     "start:inspect": "node --inspect=0.0.0.0:6068 -r dotenv/config -r ts-node/register src/index.ts",
     "prepare": "husky install"
   },

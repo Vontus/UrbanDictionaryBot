@@ -1,8 +1,0 @@
-version: "3.7"
-
-services:
-  bot:
-    build:
-      context: .
-      dockerfile: production.dockerfile
-    restart: unless-stopped
