@@ -4,3 +4,4 @@ node_modules/
 .env
 data/
 .vscode/settings.json
+ecosystem.config.js
