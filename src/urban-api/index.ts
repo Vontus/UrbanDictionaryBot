@@ -47,7 +47,7 @@ async function udRequest(
   return await axios.request<UdDefinition[]>({
     method: "GET",
     url: urbanUrl + method,
-    timeout: 2000,
+    timeout: 10000,
     params,
     transformResponse: getAxiosTransformer(),
   });
