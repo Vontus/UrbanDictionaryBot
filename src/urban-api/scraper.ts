@@ -31,7 +31,7 @@ async function requestWeb(page?: number, term?: string): Promise<string> {
   return (
     await axios.request<string>({
       method: "GET",
-      url: defineUrl,
+      url: term ? defineUrl : cleanUrl,
       params,
     })
   ).data;
