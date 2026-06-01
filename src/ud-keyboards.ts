@@ -1,5 +1,5 @@
 import { UdDefinition } from "./urban-api/ud-definition";
-import { CallbackQuery, InlineKeyboardMarkup } from "node-telegram-bot-api";
+import type { CallbackQuery, InlineKeyboardMarkup } from "./shared/telegram/types";
 import UrbanApi from "./urban-api";
 import formatter from "./formatter";
 import { channelLink } from "./config";

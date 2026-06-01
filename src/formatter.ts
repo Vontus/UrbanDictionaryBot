@@ -1,4 +1,4 @@
-import { User } from "node-telegram-bot-api";
+import type { User } from "./shared/telegram/types";
 import logger from "./logger";
 import * as compresser from "lz-string";
 import { botUsername } from "./config";

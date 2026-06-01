@@ -1,4 +1,3 @@
-import TelegramBot from "node-telegram-bot-api";
 import * as scheduler from "node-schedule";
 import logger from "./logger";
 import { bot } from "./index";
@@ -12,8 +11,8 @@ import {
   wotdAnnouncementTime,
 } from "./config";
 
-const msgOpts: TelegramBot.SendMessageOptions = {
-  parse_mode: "HTML",
+const msgOpts = {
+  parse_mode: "HTML" as const,
   disable_web_page_preview: true,
 };
 

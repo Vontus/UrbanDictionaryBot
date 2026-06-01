@@ -1,4 +1,4 @@
-import { InlineQueryResultArticle } from "node-telegram-bot-api";
+import type { InlineQueryResultArticle } from "./shared/telegram/types";
 import { UdDefinition } from "./urban-api/ud-definition";
 import templates from "./templates";
 import udKeyboards from "./ud-keyboards";
