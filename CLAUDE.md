@@ -24,12 +24,6 @@ npm test             # Run test suite (vitest)
 npm run test:watch   # Vitest in watch mode
 ```
 
-Deploy to the Pi:
-
-```bash
-DEPLOY_HOST=user@host ./scripts/deploy.sh
-```
-
 ## Environment Setup
 
 Copy `.env.example` to `.env`. The only required variable is `BOT_TOKEN`. All others enable optional features:
