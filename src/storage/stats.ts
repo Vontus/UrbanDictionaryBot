@@ -64,7 +64,13 @@ export async function getAllStats(date: moment.Moment) {
 
 export async function getStatsFrom(momentDay: moment.Moment) {
   const todayFileName = getFileNameOfDate(momentDay);
-  const todayStats: IStatsData[] = await jsonfile.readFile(todayFileName);
+  let todayStats: IStatsData[];
+  try {
+    await fs.promises.access(todayFileName);
+    todayStats = await jsonfile.readFile(todayFileName);
+  } catch (_) {
+    todayStats = [];
+  }
   const todayInteractionsDuplicated = flatten(
     todayStats.map((ts) => ts.interactions),
   );
