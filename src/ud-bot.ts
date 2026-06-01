@@ -2,7 +2,7 @@ import * as TelegramBot from "node-telegram-bot-api";
 import * as format from "string-template";
 import { scheduleJob } from "node-schedule";
 import YAML from "yamljs";
-import moment from "moment";
+import * as moment from "moment";
 
 import UrbanApi from "./urban-api";
 import templates from "./templates";
