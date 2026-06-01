@@ -42,7 +42,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "axios": "^1.6.2",
+    "axios": "^1.16.0",
     "cheerio": "1.0.0-rc.12",
     "debug": "^4.3.4",
     "fs": "0.0.1-security",
