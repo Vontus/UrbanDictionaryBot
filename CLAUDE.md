@@ -27,7 +27,7 @@ npm run test:watch   # Vitest in watch mode
 Deploy to the Pi:
 
 ```bash
-PI_HOST=user@raspberrypi ./scripts/deploy.sh
+DEPLOY_HOST=user@host ./scripts/deploy.sh
 ```
 
 ## Environment Setup
