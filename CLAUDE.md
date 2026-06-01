@@ -2,17 +2,33 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Before committing
+
+Always run these before creating a commit — there is no CI:
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
 ## Commands
 
 ```bash
-npm run dev          # Start with nodemon (hot reload, inspector on port 6068)
-npm run start        # Run directly with ts-node
+npm run build        # Compile TypeScript to dist/
+npm run dev          # Start with nodemon (hot reload, ts-node, inspector on port 6068)
+npm run start        # Run compiled dist/index.js (production mode, requires .env)
 npm run lint         # ESLint check
 npm run lint:fix     # ESLint auto-fix
-npm run pretty       # Prettier format
+npm test             # Run test suite (vitest)
+npm run test:watch   # Vitest in watch mode
 ```
 
-No test suite is configured — `@types/jest` is a dev dependency but no test scripts or test files exist.
+Deploy to the Pi:
+
+```bash
+PI_HOST=user@raspberrypi ./scripts/deploy.sh
+```
 
 ## Environment Setup
 
@@ -30,23 +46,39 @@ Copy `.env.example` to `.env`. The only required variable is `BOT_TOKEN`. All ot
 | `CHANNEL_LINK` | URL shown on the inline keyboard "Urban Dictionary Channel" button |
 | `MAX_CHANNEL_DEFS` | How many sent definition IDs to keep to avoid reposting (default: 10) |
 | `MESSAGE_CHARACTER_LIMIT` | Max message length before replacing the definition with a permalink fallback (default: 4096) |
-| `NTBA_FIX_319` | Set to `"true"` to suppress a node-telegram-bot-api deprecation warning |
 
-Cron expressions use `node-schedule` format (6 fields: `s m h dom mon dow`).
+Cron expressions use 6-field format (seconds first): `s m h dom mon dow`.
 
 ## Architecture
 
-The bot is a single long-running Node.js process using `node-telegram-bot-api` in polling mode. `src/index.ts` creates one `UdBot` instance and calls `udChannel.init()`.
+Single long-running Node.js process. `src/index.ts` creates a `TelegramClient`, a `UdBot`, and a `Poller`, then calls `initChannel`.
 
-**Request flow:** `UdBot` routes incoming messages and inline queries to `UrbanApi.defineTerm`, which checks an in-memory cache first, then the UD REST API, then falls back to a cheerio scrape of `urbandictionary.com` if the API is down. Results are formatted via `templates.ts` (reads `.txt` files from `resources/templates/`) and sent with an inline keyboard.
+**Structure:**
 
-**Inline keyboard navigation:** Callback data is `{term}_{position}` compressed with `lz-string` → base64. `parseButtonClick` splits on the **last** `_` to separate term from position, then re-fetches definitions (hits cache). Navigation wraps around cyclically.
+```
+src/
+├── features/
+│   ├── definitions/   # UD API, scraper, cache, formatter, keyboards, templates
+│   ├── channel/       # WOTD scheduling (croner), sender, store
+│   └── stats/         # Aggregator, file store, date helpers
+├── shared/
+│   └── telegram/      # TelegramClient (fetch), Poller (getUpdates), router, types
+├── ud-bot.ts          # UdBot: orchestrates handlers, admin commands, stats display
+├── bot-command.ts     # Parses /command arg1 arg2 from a Message
+├── config.ts          # zod schema — validates all env vars at startup
+├── index.ts           # Entry point
+├── logger.ts          # debug-based logger
+├── strings.ts         # User-facing text
+└── util.ts            # isArabic
+```
 
-**WOTD channel feature (`ud-channel.ts`):** `getWotds()` scrapes the UD homepage with no search term to get featured words. `getFirstUnsentDef` compares against `data/channel.json` to skip already-posted definitions. If the definition has a `.gif` field it is sent as a separate `sendDocument` call.
+**Request flow:** `Poller` calls `getUpdates`, `router.route()` dispatches each update to `UdBot`'s handlers. Messages and inline queries hit `features/definitions/api.ts`, which checks an in-memory `DefinitionCache`, then the UD REST API, then falls back to a cheerio scrape of `urbandictionary.com`.
 
-**`UdDefinition` construction:** All string fields are HTML-encoded on construction (`encoder.ts`). Inline `[bracketed links]` in definition and example text are converted to Telegram HTML `<a>` tags pointing to bot deep links. Example text is wrapped in `<i>` tags with italic tags interleaved around links.
+**Inline keyboard navigation:** Callback data is `{term}_{position}` compressed with `lz-string` → base64. `parseButtonClick` in `features/definitions/keyboards.ts` splits on the last `_` to get term and position, then re-fetches (hits cache). Navigation wraps cyclically.
 
-**Persistent storage:** JSON files written to `DATA_PATH`. `channel.json` holds `{ sentDefIds: number[] }`. Stats are stored per day as `stats/YYYY-MM-DD.json` with per-user interaction counts (`messages`, `button-clicks`, `inline-queries`).
+**WOTD channel feature:** `features/channel/` — `getWotds()` scrapes the UD homepage. `getFirstUnsentDef` compares against `data/channel.json`. GIFs are sent as a separate `sendDocument` call. Scheduling via `croner`.
+
+**Persistent storage:** JSON files in `DATA_PATH`. `channel.json` holds `{ sentDefIds: number[] }`. Stats are stored per day as `stats/YYYY-MM-DD.json`.
 
 **Admin commands** (sent in `LOG_CHAT_ID` by `ADMIN_ID`):
 
@@ -54,5 +86,9 @@ The bot is a single long-running Node.js process using `node-telegram-bot-api` i
 |---|---|
 | `/stats [YYYY-MM-DD]` | Posts stats for the given date (defaults to today) |
 | `/wotd` | Sends WOTD preview to the log chat without saving |
-| `/wotd ch` or `/wotd channel` | Posts to the configured channel and records the def ID |
+| `/wotd ch` / `/wotd channel` | Posts to the configured channel and records the def ID |
 | `/wotd <chatId>` | Posts WOTD to an arbitrary chat ID |
+
+## Production dependencies
+
+Only 5 packages ship to the Pi (`npm ci --omit=dev`): `cheerio`, `croner`, `debug`, `lz-string`, `zod`.
