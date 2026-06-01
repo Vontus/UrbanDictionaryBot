@@ -14,7 +14,7 @@
     "pretty": "prettier --write .",
     "start": "node --env-file=.env dist/index.js",
     "start:inspect": "node --env-file=.env --inspect=0.0.0.0:6068 dist/index.js",
-    "prepare": "husky install"
+    "prepare": "[ -d node_modules/husky ] && husky install || true"
   },
   "devDependencies": {
     "@grammyjs/types": "^3.27.3",
