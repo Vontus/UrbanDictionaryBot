@@ -2,7 +2,7 @@ import { TelegramClient } from "./shared/telegram/client";
 import { Poller } from "./shared/telegram/poller";
 import { route } from "./shared/telegram/router";
 import { UdBot } from "./ud-bot";
-import udChannel from "./ud-channel";
+import { init as initChannel } from "./features/channel";
 import logger from "./logger";
 import { botToken } from "./config";
 
@@ -17,7 +17,7 @@ const poller = new Poller(
 
 const start = async (): Promise<void> => {
   await bot.logToTelegram("Bot started");
-  await udChannel.init();
+  await initChannel(client);
   poller.start();
 };
 

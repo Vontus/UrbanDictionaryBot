@@ -1,4 +1,4 @@
-import { scheduleJob } from "node-schedule";
+import { Cron } from "croner";
 import moment from "moment";
 
 import UrbanApi from "./features/definitions/api";
@@ -14,7 +14,7 @@ import { BotCommand } from "./bot-command";
 import strings from "./strings";
 import { addStats, getStatsFrom } from "./storage/stats";
 import { InteractionType } from "./storage/stats-data";
-import udChannel from "./ud-channel";
+import { sendWord as sendChannelWord } from "./features/channel/sender";
 import { UdApiNotAvailableError } from "./exceptions/UdApiNotAvailableError";
 import {
   adminId,
@@ -53,7 +53,7 @@ export class UdBot {
   async schedulePostStats(): Promise<void> {
     if (logChatId != null && statsPostTime != null) {
       logger.log(`Scheduling posting stats at ${statsPostTime}`);
-      scheduleJob(statsPostTime, () => {
+      new Cron(statsPostTime, () => {
         if (logChatId != null) {
           void this.sendStats(logChatId, moment().subtract(1, "day"));
         }
@@ -304,7 +304,7 @@ export class UdBot {
       }
     }
 
-    await udChannel.sendWord(chatId, saveWord);
+    await sendChannelWord(this.client, chatId, saveWord);
   }
 
   async handleStatsCommand(command: BotCommand): Promise<void> {
