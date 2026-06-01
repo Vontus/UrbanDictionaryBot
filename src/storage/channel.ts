@@ -2,7 +2,7 @@ import { ChannelData } from "./channel-data";
 import * as jsonfile from "jsonfile";
 import * as path from "path";
 import * as fs from "fs";
-import { UdDefinition } from "../urban-api/ud-definition";
+import { UdDefinition } from "../features/definitions/definition";
 import { dataPath, maxChannelDefs } from "../config";
 
 const channelFile = path.join(dataPath, "channel.json");

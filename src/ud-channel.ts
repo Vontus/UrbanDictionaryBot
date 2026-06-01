@@ -1,9 +1,9 @@
 import * as scheduler from "node-schedule";
 import logger from "./logger";
 import { bot } from "./index";
-import templates from "./templates";
+import templates from "./features/definitions/templates";
 import { getFirstUnsentDef, saveSentChannelDefId } from "./storage/channel";
-import { getWotds } from "./urban-api/scraper";
+import { getWotds } from "./features/definitions/scraper";
 import {
   channelId,
   channelPostTime,

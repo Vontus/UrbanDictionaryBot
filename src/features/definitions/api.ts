@@ -1,18 +1,18 @@
-import { UdDefinition } from "./ud-definition";
-import logger from "../logger";
-import { UdApiNotAvailableError } from "../exceptions/UdApiNotAvailableError";
+import { UdDefinition } from "./definition";
+import { DefinitionCache } from "./cache";
 import { searchTerm } from "./scraper";
-import { addSearchCache, getSearchCache } from "./ud-cache";
+import { UdApiNotAvailableError } from "../../exceptions/UdApiNotAvailableError";
+import logger from "../../logger";
 
 const urbanUrl = "http://api.urbandictionary.com/v0/";
+const cache = new DefinitionCache();
 
 export default {
   async defineTerm(term: string): Promise<UdDefinition[]> {
-    const cacheDefinitions = getSearchCache(term);
-
-    if (cacheDefinitions != null) {
+    const cached = cache.get(term);
+    if (cached != null) {
       logger.log(`serving "${term}" from cache...`);
-      return cacheDefinitions;
+      return cached;
     }
 
     logger.log(`asking ud for "${term}"...`);
@@ -29,7 +29,7 @@ export default {
       }
     }
     if (definitions.length > 0) {
-      addSearchCache(term, definitions);
+      cache.set(term, definitions);
     }
     return definitions;
   },

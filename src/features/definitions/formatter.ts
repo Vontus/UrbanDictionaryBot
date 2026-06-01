@@ -1,7 +1,7 @@
-import type { User } from "./shared/telegram/types";
-import logger from "./logger";
+import type { User } from "../../shared/telegram/types";
+import logger from "../../logger";
 import * as compresser from "lz-string";
-import { botUsername } from "./config";
+import { botUsername } from "../../config";
 
 export default {
   ITALIC_OPEN_TAG: "<i>",

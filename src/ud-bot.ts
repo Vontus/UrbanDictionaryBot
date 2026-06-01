@@ -1,18 +1,17 @@
-import format from "string-template";
 import { scheduleJob } from "node-schedule";
-import YAML from "yamljs";
 import moment from "moment";
 
-import UrbanApi from "./urban-api";
-import templates from "./templates";
+import UrbanApi from "./features/definitions/api";
+import templates from "./features/definitions/templates";
+import keyboards from "./features/definitions/keyboards";
+import inlineResults from "./features/definitions/inline-results";
+import formatter from "./features/definitions/formatter";
+import encode from "./features/definitions/encoder";
+import { UdDefinition } from "./features/definitions/definition";
 import { isArabic } from "./util";
 import logger from "./logger";
-import udKeyboards from "./ud-keyboards";
-import inlineResults from "./inline-results";
 import { BotCommand } from "./bot-command";
-import { UdDefinition } from "./urban-api/ud-definition";
 import strings from "./strings";
-import formatter from "./formatter";
 import { addStats, getStatsFrom } from "./storage/stats";
 import { InteractionType } from "./storage/stats-data";
 import udChannel from "./ud-channel";
@@ -24,7 +23,6 @@ import {
   statsPostTime,
   messageCharacterLimit,
 } from "./config";
-import encode from "./encoder";
 import { TelegramClient } from "./shared/telegram/client";
 import type { SendMessageOptions, EditMessageTextOptions } from "./shared/telegram/client";
 import type { Message, Chat, CallbackQuery, InlineQuery, ChosenInlineResult } from "./shared/telegram/types";
@@ -151,7 +149,7 @@ export class UdBot {
     const defs = await UrbanApi.defineTerm(text);
 
     if (defs == null || defs.length <= 0) {
-      await this.client.sendMessage(chatId, format(strings.noResults, encode(text)), {
+      await this.client.sendMessage(chatId, formatPositional(strings.noResults, encode(text)), {
         parse_mode: "HTML",
       });
       return;
@@ -185,9 +183,9 @@ export class UdBot {
     let text;
 
     try {
-      const buttonResponse = await udKeyboards.parseButtonClick(callbackQuery);
+      const buttonResponse = await keyboards.parseButtonClick(callbackQuery);
       const def = buttonResponse.definitions[buttonResponse.position];
-      const inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse);
+      const inlineKeyboard = keyboards.buildFromDefinition(buttonResponse);
 
       const editMessOptions: EditMessageTextOptions = {
         chat_id: callbackQuery.message.chat.id,
@@ -215,7 +213,7 @@ export class UdBot {
     let definitionString = templates.definition(def);
 
     if (definitionString.length > messageCharacterLimit) {
-      definitionString = format(strings.definitionTooLong, def.permalink);
+      definitionString = formatPositional(strings.definitionTooLong, def.permalink);
     }
 
     return definitionString;
@@ -230,14 +228,13 @@ export class UdBot {
     const msgOptions: SendMessageOptions = {
       parse_mode: "HTML",
       disable_web_page_preview: true,
-      reply_markup: udKeyboards.buildFromDefinition(
+      reply_markup: keyboards.buildFromDefinition(
         keyboardTerm
           ? { term: keyboardTerm, definitions: defs, position: 0 }
           : undefined,
       ),
     };
-    const definitionString = this.buildDefinition(defs[pos]);
-    await this.client.sendMessage(chatId, definitionString, msgOptions);
+    await this.client.sendMessage(chatId, this.buildDefinition(defs[pos]), msgOptions);
   }
 
   async sendArabicResponse(chat: Chat): Promise<void> {
@@ -265,12 +262,9 @@ export class UdBot {
   async logToTelegram(message: string, moreInfo?: unknown): Promise<void> {
     if (logChatId != null) {
       let msg = message;
-
       if (moreInfo != null) {
-        msg += "\n\n";
-        msg += JSON.stringify(moreInfo);
+        msg += "\n\n" + JSON.stringify(moreInfo);
       }
-
       await this.client.sendMessage(logChatId, msg);
     }
   }
@@ -296,7 +290,7 @@ export class UdBot {
 
   async handleWotdCommand(command: BotCommand): Promise<void> {
     let chatId: string = command.message.chat.id.toString();
-    let saveWord: boolean = false;
+    let saveWord = false;
     if (command.args.length > 0) {
       if (command.args[0] === "ch" || command.args[0] === "channel") {
         saveWord = true;
@@ -321,7 +315,7 @@ export class UdBot {
     if (!fromMoment.isValid()) {
       await this.client.sendMessage(
         command.message.chat.id,
-        format(wrongDateFormat, from, dateFormat),
+        formatPositional(wrongDateFormat, from, dateFormat),
       );
     }
 
@@ -332,18 +326,13 @@ export class UdBot {
     const message = fromMoment.isSame(moment(), "day")
       ? "Today's Stats:"
       : "Stats from " + fromMoment.format(strings.commands.stats.dateFormat);
-    await this.client.sendMessage(
-      chatId,
-      message + "\n\n" + YAML.stringify(await getStatsFrom(fromMoment)),
-    );
+    const stats = await getStatsFrom(fromMoment);
+    await this.client.sendMessage(chatId, message + "\n\n" + JSON.stringify(stats, null, 2));
   }
 
   async handleStartCommand(command: BotCommand): Promise<void> {
     if (command.args.length <= 0) {
-      await this.client.sendMessage(
-        command.message.chat.id,
-        strings.commands.start.default,
-      );
+      await this.client.sendMessage(command.message.chat.id, strings.commands.start.default);
       return;
     }
 
@@ -354,10 +343,7 @@ export class UdBot {
     const word = formatter.decompress(command.args[0]);
 
     if (!word) {
-      await this.client.sendMessage(
-        command.message.chat.id,
-        strings.commands.start.badArgument,
-      );
+      await this.client.sendMessage(command.message.chat.id, strings.commands.start.badArgument);
       return;
     }
 
@@ -378,11 +364,7 @@ export class UdBot {
         );
         break;
       case "random":
-        await this.sendDefinition(
-          command.message.chat.id,
-          await UrbanApi.random(),
-          0,
-        );
+        await this.sendDefinition(command.message.chat.id, await UrbanApi.random(), 0);
         break;
       case "help":
         await this.sendHelp(command.message.chat);
@@ -396,4 +378,8 @@ export class UdBot {
         break;
     }
   }
+}
+
+function formatPositional(template: string, ...args: unknown[]): string {
+  return template.replace(/\{(\d+)\}/g, (_, i) => String(args[Number(i)] ?? ""));
 }

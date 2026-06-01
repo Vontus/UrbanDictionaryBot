@@ -1,5 +1,5 @@
 import $ from "cheerio";
-import { UdDefinition } from "./ud-definition";
+import { UdDefinition } from "./definition";
 
 const cleanUrl = "https://www.urbandictionary.com";
 const defineUrl = `${cleanUrl}/define.php`;
