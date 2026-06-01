@@ -14,7 +14,6 @@ const env = z
     DATA_PATH: z.string().default("./data/"),
     MAX_CHANNEL_DEFS: z.coerce.number().int().positive().default(10),
     MESSAGE_CHARACTER_LIMIT: z.coerce.number().int().positive().default(4096),
-    NTBA_FIX_319: z.string().optional(),
   })
   .parse(process.env);
 
