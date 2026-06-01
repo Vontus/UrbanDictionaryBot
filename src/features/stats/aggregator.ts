@@ -16,17 +16,21 @@ export function addInteraction(
   userId: number,
   interactionType: InteractionType,
 ): IStatsData[] {
-  const updated = [...stats];
-  const userStats = updated.find((s) => s.userId === userId);
-  if (userStats !== undefined) {
-    const interaction = userStats.interactions.find((i) => i.interactionType === interactionType);
-    if (interaction !== undefined) {
-      interaction.amount++;
-    } else {
-      userStats.interactions.push({ interactionType, amount: 1 });
-    }
-  } else {
-    updated.push({ userId, interactions: [{ interactionType, amount: 1 }] });
+  const userIndex = stats.findIndex((s) => s.userId === userId);
+  if (userIndex === -1) {
+    return [...stats, { userId, interactions: [{ interactionType, amount: 1 }] }];
   }
-  return updated;
+  return stats.map((s, i) => {
+    if (i !== userIndex) return s;
+    const interactionIndex = s.interactions.findIndex((x) => x.interactionType === interactionType);
+    if (interactionIndex === -1) {
+      return { ...s, interactions: [...s.interactions, { interactionType, amount: 1 }] };
+    }
+    return {
+      ...s,
+      interactions: s.interactions.map((x, j) =>
+        j === interactionIndex ? { ...x, amount: x.amount + 1 } : x,
+      ),
+    };
+  });
 }
