@@ -1,4 +1,5 @@
-export default (toEncode: string): string => {
+export default (toEncode: string | null | undefined): string => {
+  if (toEncode == null) return "";
   return toEncode
     .replace(new RegExp("&", "g"), "&amp;")
     .replace(new RegExp("<", "g"), "&lt;")
