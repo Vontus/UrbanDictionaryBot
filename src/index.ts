@@ -7,6 +7,7 @@ logger.log("Starting...");
 const bot = new UdBot(botToken, { polling: true });
 
 const start = async (): Promise<void> => {
+  await bot.logToTelegram("Bot started");
   await udChannel.init();
 };
 
