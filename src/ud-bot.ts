@@ -1,5 +1,4 @@
 import { Cron } from "croner";
-import moment from "moment";
 
 import UrbanApi from "./features/definitions/api";
 import templates from "./features/definitions/templates";
@@ -12,8 +11,15 @@ import { isArabic } from "./util";
 import logger from "./logger";
 import { BotCommand } from "./bot-command";
 import strings from "./strings";
-import { addStats, getStatsFrom } from "./storage/stats";
-import { InteractionType } from "./storage/stats-data";
+import {
+  addStats,
+  getStatsFrom,
+  InteractionType,
+  yesterday,
+  parseDate,
+  isSameDay,
+  formatDate,
+} from "./features/stats";
 import { sendWord as sendChannelWord } from "./features/channel/sender";
 import { UdApiNotAvailableError } from "./exceptions/UdApiNotAvailableError";
 import {
@@ -55,7 +61,7 @@ export class UdBot {
       logger.log(`Scheduling posting stats at ${statsPostTime}`);
       new Cron(statsPostTime, () => {
         if (logChatId != null) {
-          void this.sendStats(logChatId, moment().subtract(1, "day"));
+          void this.sendStats(logChatId, yesterday());
         }
       });
     }
@@ -310,23 +316,24 @@ export class UdBot {
   async handleStatsCommand(command: BotCommand): Promise<void> {
     const { dateFormat, wrongDateFormat } = strings.commands.stats;
     const from = command.args[0];
-    const fromMoment = from != null ? moment(from, dateFormat, true) : moment();
+    const fromDate = from != null ? parseDate(from) : new Date();
 
-    if (!fromMoment.isValid()) {
+    if (fromDate == null) {
       await this.client.sendMessage(
         command.message.chat.id,
         formatPositional(wrongDateFormat, from, dateFormat),
       );
+      return;
     }
 
-    await this.sendStats(command.message.chat.id, fromMoment);
+    await this.sendStats(command.message.chat.id, fromDate);
   }
 
-  async sendStats(chatId: number | string, fromMoment: moment.Moment): Promise<void> {
-    const message = fromMoment.isSame(moment(), "day")
+  async sendStats(chatId: number | string, date: Date): Promise<void> {
+    const message = isSameDay(date, new Date())
       ? "Today's Stats:"
-      : "Stats from " + fromMoment.format(strings.commands.stats.dateFormat);
-    const stats = await getStatsFrom(fromMoment);
+      : "Stats from " + formatDate(date);
+    const stats = await getStatsFrom(date);
     await this.client.sendMessage(chatId, message + "\n\n" + JSON.stringify(stats, null, 2));
   }
 
