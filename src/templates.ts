@@ -1,5 +1,5 @@
 import * as Fs from "fs";
-import * as format from "string-template";
+import format from "string-template";
 import { UdDefinition } from "./urban-api/ud-definition";
 
 const definitionTemplate = readTemplate("definition");

@@ -1,4 +1,4 @@
-import * as TelegramBot from "node-telegram-bot-api";
+import TelegramBot from "node-telegram-bot-api";
 import * as scheduler from "node-schedule";
 import logger from "./logger";
 import { bot } from "./index";

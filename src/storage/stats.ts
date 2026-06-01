@@ -2,7 +2,7 @@ import * as jsonfile from "jsonfile";
 import * as path from "path";
 import * as fs from "fs";
 import { InteractionType, IStatsData } from "./stats-data";
-import * as moment from "moment";
+import moment from "moment";
 import { groupBy, flatten, sumBy, mapValues, uniqBy } from "lodash";
 import { dataPath } from "../config";
 
