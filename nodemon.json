@@ -1,7 +1,7 @@
 {
   "ignore": ["**/*.test.ts", "**/*.spec.ts", ".git", "node_modules"],
   "watch": ["src"],
-  "exec": "npm run start:inspect",
+  "exec": "node --env-file=.env --inspect=0.0.0.0:6068 -r ts-node/register src/index.ts",
   "ext": "ts",
   "legacyWatch": true
 }
