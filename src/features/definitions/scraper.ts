@@ -11,8 +11,6 @@ function scrapeDefinition(htmlElement: cheerio.Element): UdDefinition {
     definition: replaceLinks($(htmlElement).find(".meaning")),
     example: replaceLinks($(htmlElement).find(".example")),
     permalink: permalink != null ? `${cleanUrl}${permalink}` : null,
-    thumbs_up: parseInt($(htmlElement).find("a.up .count").text()),
-    thumbs_down: parseInt($(htmlElement).find("a.down .count").text()),
     author: $(htmlElement).find(".contributor a").text(),
     word: $(htmlElement).find(".word").text(),
     gif: $(htmlElement).find(".gif img").attr("src"),
