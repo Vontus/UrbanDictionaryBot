@@ -12,8 +12,8 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "pretty": "prettier --write .",
-    "start": "node --env-file=.env dist/index.js",
-    "start:inspect": "node --env-file=.env --inspect=0.0.0.0:6068 dist/index.js",
+    "start": "node dist/index.js",
+    "start:inspect": "node --inspect=0.0.0.0:6068 dist/index.js",
     "prepare": "[ -d node_modules/husky ] && husky install || true"
   },
   "devDependencies": {
