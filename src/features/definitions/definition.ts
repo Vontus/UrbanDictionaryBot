@@ -8,8 +8,6 @@ export class UdDefinition {
   definition: string;
   formattedDefinition: string;
   permalink: string;
-  thumbsUp: number;
-  thumbsDown: number;
   author: string;
   word: string;
   example: string;
@@ -21,8 +19,6 @@ export class UdDefinition {
     this.defId = jsonObject.defid;
     this.definition = encode(jsonObject.definition);
     this.permalink = encode(jsonObject.permalink);
-    this.thumbsUp = jsonObject.thumbs_up;
-    this.thumbsDown = jsonObject.thumbs_down;
     this.author = encode(jsonObject.author);
     this.word = encode(jsonObject.word);
     this.example = encode(jsonObject.example);
