@@ -1,6 +1,5 @@
 import $ from "cheerio";
-import axios from "axios";
-import { UdDefinition } from "./ud-definition";
+import { UdDefinition } from "./definition";
 
 const cleanUrl = "https://www.urbandictionary.com";
 const defineUrl = `${cleanUrl}/define.php`;
@@ -23,23 +22,16 @@ function scrapeDefinition(htmlElement: cheerio.Element): UdDefinition {
 }
 
 async function requestWeb(page?: number, term?: string): Promise<string> {
-  const params = {
-    page: page !== 1 ? page : null,
-    term,
-  };
-
-  return (
-    await axios.request<string>({
-      method: "GET",
-      url: term ? defineUrl : cleanUrl,
-      params,
-    })
-  ).data;
+  const url = new URL(term != null ? defineUrl : cleanUrl);
+  if (term != null) url.searchParams.set("term", term);
+  if (page != null && page !== 1) url.searchParams.set("page", page.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+  return res.text();
 }
 
 export async function getWotds(): Promise<UdDefinition[]> {
   const html = await requestWeb();
-
   const defs: UdDefinition[] = [];
 
   $(".definition", html).each((_index, element) => {

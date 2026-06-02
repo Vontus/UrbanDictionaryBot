@@ -1,22 +1,26 @@
-import * as TelegramBot from "node-telegram-bot-api";
-import * as format from "string-template";
-import { scheduleJob } from "node-schedule";
-import YAML from "yamljs";
-import * as moment from "moment";
+import { Cron } from "croner";
 
-import UrbanApi from "./urban-api";
-import templates from "./templates";
+import UrbanApi from "./features/definitions/api";
+import templates from "./features/definitions/templates";
+import keyboards from "./features/definitions/keyboards";
+import inlineResults from "./features/definitions/inline-results";
+import formatter from "./features/definitions/formatter";
+import encode from "./features/definitions/encoder";
+import { UdDefinition } from "./features/definitions/definition";
 import { isArabic } from "./util";
 import logger from "./logger";
-import udKeyboards from "./ud-keyboards";
-import inlineResults from "./inline-results";
 import { BotCommand } from "./bot-command";
-import { UdDefinition } from "./urban-api/ud-definition";
 import strings from "./strings";
-import formatter from "./formatter";
-import { addStats, getStatsFrom } from "./storage/stats";
-import { InteractionType } from "./storage/stats-data";
-import udChannel from "./ud-channel";
+import {
+  addStats,
+  getStatsFrom,
+  InteractionType,
+  yesterday,
+  parseDate,
+  isSameDay,
+  formatDate,
+} from "./features/stats";
+import { sendWord as sendChannelWord } from "./features/channel/sender";
 import { UdApiNotAvailableError } from "./exceptions/UdApiNotAvailableError";
 import {
   adminId,
@@ -25,56 +29,56 @@ import {
   statsPostTime,
   messageCharacterLimit,
 } from "./config";
-import encode from "./encoder";
+import { TelegramClient } from "./shared/telegram/client";
+import type { SendMessageOptions, EditMessageTextOptions } from "./shared/telegram/client";
+import type { Message, Chat, CallbackQuery, InlineQuery, ChosenInlineResult } from "./shared/telegram/types";
+import type { UpdateHandlers } from "./shared/telegram/router";
 
-export class UdBot extends TelegramBot {
-  public constructor(token: string, options: TelegramBot.ConstructorOptions) {
-    super(token, options);
-
-    this.on("message", (msg) => {
-      void this.routeMessage(msg);
-    });
-    this.on("error", (error) => void this.handleError(error));
-    this.on(
-      "callback_query",
-      (callbackQuery) => void this.handleCallbackQuery(callbackQuery),
-    );
-    this.on("inline_query", (query) => void this.onInlineQuery(query));
-    this.on(
-      "chosen_inline_result",
-      (chosenResult) => void this.onChosenInlineResult(chosenResult),
-    );
-
+export class UdBot {
+  constructor(private client: TelegramClient) {
     void this.schedulePostStats();
+  }
+
+  getHandlers(): UpdateHandlers {
+    return {
+      onMessage: (msg) => this.routeMessage(msg),
+      onCallbackQuery: (query) => this.handleCallbackQuery(query),
+      onInlineQuery: (query) => this.onInlineQuery(query),
+      onChosenInlineResult: (result) => this.onChosenInlineResult(result),
+    };
+  }
+
+  sendMessage(chatId: number | string, text: string, options?: SendMessageOptions): Promise<Message> {
+    return this.client.sendMessage(chatId, text, options);
+  }
+
+  sendDocument(chatId: number | string, document: string): Promise<Message> {
+    return this.client.sendDocument(chatId, document);
   }
 
   async schedulePostStats(): Promise<void> {
     if (logChatId != null && statsPostTime != null) {
       logger.log(`Scheduling posting stats at ${statsPostTime}`);
-      scheduleJob(statsPostTime, () => {
+      new Cron(statsPostTime, () => {
         if (logChatId != null) {
-          void this.sendStats(logChatId, moment().subtract(1, "day"));
+          void this.sendStats(logChatId, yesterday());
         }
       });
     }
   }
 
-  async onChosenInlineResult(
-    chosenInlineResult: TelegramBot.ChosenInlineResult,
-  ): Promise<void> {
+  async onChosenInlineResult(chosenInlineResult: ChosenInlineResult): Promise<void> {
     await addStats(chosenInlineResult.from.id, InteractionType.InlineQuery);
   }
 
-  async onInlineQuery(inlineQuery: TelegramBot.InlineQuery): Promise<void> {
+  async onInlineQuery(inlineQuery: InlineQuery): Promise<void> {
     try {
       if (inlineQuery.query == null || inlineQuery.query.length <= 0) {
         const randomResult = await UrbanApi.random();
-        await this.answerInlineQuery(
+        await this.client.answerInlineQuery(
           inlineQuery.id,
           inlineResults.getResults(randomResult),
-          {
-            cache_time: 0,
-          },
+          { cache_time: 0 },
         );
         return;
       }
@@ -82,33 +86,29 @@ export class UdBot extends TelegramBot {
       const definitions = await UrbanApi.defineTerm(inlineQuery.query);
 
       if (definitions == null || definitions.length <= 0) {
-        await this.answerInlineQuery(inlineQuery.id, [], {
+        await this.client.answerInlineQuery(inlineQuery.id, [], {
           switch_pm_text: strings.noResultsShort,
           switch_pm_parameter: "ignore",
         });
         return;
       }
 
-      await this.answerInlineQuery(
-        inlineQuery.id,
-        inlineResults.getResults(definitions),
-      );
+      await this.client.answerInlineQuery(inlineQuery.id, inlineResults.getResults(definitions));
     } catch (error) {
-      // Todo remove as
       await this.handleError(error as Error);
       const text =
         error instanceof UdApiNotAvailableError
           ? strings.apiDownShort
           : strings.unexpectedErrorShort;
 
-      await this.answerInlineQuery(inlineQuery.id, [], {
+      await this.client.answerInlineQuery(inlineQuery.id, [], {
         switch_pm_text: text,
         switch_pm_parameter: "ignore",
       });
     }
   }
 
-  async routeMessage(message: TelegramBot.Message): Promise<void> {
+  async routeMessage(message: Message): Promise<void> {
     try {
       if (message.chat.id.toString() === logChatId) {
         await this.handleLogChat(message);
@@ -117,21 +117,20 @@ export class UdBot extends TelegramBot {
       if (message.chat.type === "private") {
         await this.handlePrivateChat(message);
       } else if (message.left_chat_member != null) {
-        await this.leaveChat(message.chat.id);
+        await this.client.leaveChat(message.chat.id);
       }
     } catch (error) {
-      // Todo remove as
       await this.handleError(error as Error, message);
       const text =
         error instanceof UdApiNotAvailableError
           ? error.message
           : strings.unexpectedError;
 
-      await this.sendMessage(message.chat.id, text);
+      await this.client.sendMessage(message.chat.id, text);
     }
   }
 
-  async handlePrivateChat(message: TelegramBot.Message): Promise<void> {
+  async handlePrivateChat(message: Message): Promise<void> {
     if (message.text == null) {
       return await this.sendHelp(message.chat);
     }
@@ -156,7 +155,7 @@ export class UdBot extends TelegramBot {
     const defs = await UrbanApi.defineTerm(text);
 
     if (defs == null || defs.length <= 0) {
-      await this.sendMessage(chatId, format(strings.noResults, encode(text)), {
+      await this.client.sendMessage(chatId, formatPositional(strings.noResults, encode(text)), {
         parse_mode: "HTML",
       });
       return;
@@ -165,7 +164,7 @@ export class UdBot extends TelegramBot {
     return await this.sendDefinition(chatId, defs, 0, text);
   }
 
-  async handleLogChat(message: TelegramBot.Message): Promise<void> {
+  async handleLogChat(message: Message): Promise<void> {
     if (
       message.text?.startsWith("/") &&
       adminId != null &&
@@ -175,28 +174,26 @@ export class UdBot extends TelegramBot {
     }
   }
 
-  async handleCallbackQuery(
-    callbackQuery: TelegramBot.CallbackQuery,
-  ): Promise<void> {
+  async handleCallbackQuery(callbackQuery: CallbackQuery): Promise<void> {
     if (callbackQuery.message == null) {
       logger.error("No message received from callbackQuery");
-      await this.answerCallbackQuery(callbackQuery.id);
+      await this.client.answerCallbackQuery(callbackQuery.id);
       return;
     }
 
     if (callbackQuery.data === "ignore") {
-      await this.answerCallbackQuery(callbackQuery.id);
+      await this.client.answerCallbackQuery(callbackQuery.id);
       return;
     }
 
     let text;
 
     try {
-      const buttonResponse = await udKeyboards.parseButtonClick(callbackQuery);
+      const buttonResponse = await keyboards.parseButtonClick(callbackQuery);
       const def = buttonResponse.definitions[buttonResponse.position];
-      const inlineKeyboard = udKeyboards.buildFromDefinition(buttonResponse);
+      const inlineKeyboard = keyboards.buildFromDefinition(buttonResponse);
 
-      const editMessOptions: TelegramBot.EditMessageTextOptions = {
+      const editMessOptions: EditMessageTextOptions = {
         chat_id: callbackQuery.message.chat.id,
         disable_web_page_preview: true,
         message_id: callbackQuery.message.message_id,
@@ -205,25 +202,24 @@ export class UdBot extends TelegramBot {
       };
 
       await Promise.all([
-        this.editMessageText(this.buildDefinition(def), editMessOptions),
+        this.client.editMessageText(this.buildDefinition(def), editMessOptions),
         addStats(callbackQuery.message.chat.id, InteractionType.ButtonClick),
       ]);
     } catch (error) {
-      // Todo remove as
       await this.handleError(error as Error);
       text =
         error instanceof UdApiNotAvailableError
           ? strings.apiDown
           : strings.unexpectedError;
     }
-    await this.answerCallbackQuery(callbackQuery.id, { text });
+    await this.client.answerCallbackQuery(callbackQuery.id, { text });
   }
 
   buildDefinition(def: UdDefinition): string {
     let definitionString = templates.definition(def);
 
     if (definitionString.length > messageCharacterLimit) {
-      definitionString = format(strings.definitionTooLong, def.permalink);
+      definitionString = formatPositional(strings.definitionTooLong, def.permalink);
     }
 
     return definitionString;
@@ -235,31 +231,27 @@ export class UdBot extends TelegramBot {
     pos: number,
     keyboardTerm?: string,
   ): Promise<void> {
-    const msgOptions: TelegramBot.SendMessageOptions = {
+    const msgOptions: SendMessageOptions = {
       parse_mode: "HTML",
       disable_web_page_preview: true,
-      reply_markup: udKeyboards.buildFromDefinition(
+      reply_markup: keyboards.buildFromDefinition(
         keyboardTerm
           ? { term: keyboardTerm, definitions: defs, position: 0 }
           : undefined,
       ),
     };
-    const definitionString = this.buildDefinition(defs[pos]);
-    await this.sendMessage(chatId, definitionString, msgOptions);
+    await this.client.sendMessage(chatId, this.buildDefinition(defs[pos]), msgOptions);
   }
 
-  async sendArabicResponse(chat: TelegramBot.Chat): Promise<void> {
-    await this.sendMessage(chat.id, strings.arabicResponse);
+  async sendArabicResponse(chat: Chat): Promise<void> {
+    await this.client.sendMessage(chat.id, strings.arabicResponse);
   }
 
-  async sendHelp(chat: TelegramBot.Chat): Promise<void> {
-    await this.sendMessage(chat.id, strings.help);
+  async sendHelp(chat: Chat): Promise<void> {
+    await this.client.sendMessage(chat.id, strings.help);
   }
 
-  async handleError(
-    error: Error,
-    message?: TelegramBot.Message,
-  ): Promise<void> {
+  async handleError(error: Error, message?: Message): Promise<void> {
     logger.error(error);
     await this.logToTelegram(
       error.message,
@@ -276,13 +268,10 @@ export class UdBot extends TelegramBot {
   async logToTelegram(message: string, moreInfo?: unknown): Promise<void> {
     if (logChatId != null) {
       let msg = message;
-
       if (moreInfo != null) {
-        msg += "\n\n";
-        msg += JSON.stringify(moreInfo);
+        msg += "\n\n" + JSON.stringify(moreInfo);
       }
-
-      await this.sendMessage(logChatId, msg);
+      await this.client.sendMessage(logChatId, msg);
     }
   }
 
@@ -297,7 +286,7 @@ export class UdBot extends TelegramBot {
           break;
       }
     } catch (err) {
-      await this.sendMessage(
+      await this.client.sendMessage(
         command.message.chat.id,
         `Error executing command:\n${JSON.stringify(err)}`,
       );
@@ -307,7 +296,7 @@ export class UdBot extends TelegramBot {
 
   async handleWotdCommand(command: BotCommand): Promise<void> {
     let chatId: string = command.message.chat.id.toString();
-    let saveWord: boolean = false;
+    let saveWord = false;
     if (command.args.length > 0) {
       if (command.args[0] === "ch" || command.args[0] === "channel") {
         saveWord = true;
@@ -321,43 +310,36 @@ export class UdBot extends TelegramBot {
       }
     }
 
-    await udChannel.sendWord(chatId, saveWord);
+    await sendChannelWord(this.client, chatId, saveWord);
   }
 
   async handleStatsCommand(command: BotCommand): Promise<void> {
     const { dateFormat, wrongDateFormat } = strings.commands.stats;
     const from = command.args[0];
-    const fromMoment = from != null ? moment(from, dateFormat, true) : moment();
+    const fromDate = from != null ? parseDate(from) : new Date();
 
-    if (!fromMoment.isValid()) {
-      await this.sendMessage(
+    if (fromDate == null) {
+      await this.client.sendMessage(
         command.message.chat.id,
-        format(wrongDateFormat, from, dateFormat),
+        formatPositional(wrongDateFormat, from, dateFormat),
       );
+      return;
     }
 
-    await this.sendStats(command.message.chat.id, fromMoment);
+    await this.sendStats(command.message.chat.id, fromDate);
   }
 
-  async sendStats(
-    chatId: number | string,
-    fromMoment: moment.Moment,
-  ): Promise<void> {
-    const message = fromMoment.isSame(moment(), "day")
+  async sendStats(chatId: number | string, date: Date): Promise<void> {
+    const message = isSameDay(date, new Date())
       ? "Today's Stats:"
-      : "Stats from " + fromMoment.format(strings.commands.stats.dateFormat);
-    await this.sendMessage(
-      chatId,
-      message + "\n\n" + YAML.stringify(await getStatsFrom(fromMoment)),
-    );
+      : "Stats from " + formatDate(date);
+    const stats = await getStatsFrom(date);
+    await this.client.sendMessage(chatId, message + "\n\n" + JSON.stringify(stats, null, 2));
   }
 
   async handleStartCommand(command: BotCommand): Promise<void> {
     if (command.args.length <= 0) {
-      await this.sendMessage(
-        command.message.chat.id,
-        strings.commands.start.default,
-      );
+      await this.client.sendMessage(command.message.chat.id, strings.commands.start.default);
       return;
     }
 
@@ -368,10 +350,7 @@ export class UdBot extends TelegramBot {
     const word = formatter.decompress(command.args[0]);
 
     if (!word) {
-      await this.sendMessage(
-        command.message.chat.id,
-        strings.commands.start.badArgument,
-      );
+      await this.client.sendMessage(command.message.chat.id, strings.commands.start.badArgument);
       return;
     }
 
@@ -385,27 +364,20 @@ export class UdBot extends TelegramBot {
         await this.handleStartCommand(command);
         break;
       case "about":
-        await this.sendMessage(
+        await this.client.sendMessage(
           command.message.chat.id,
           strings.commands.about,
           { parse_mode: "HTML", disable_web_page_preview: true },
         );
         break;
       case "random":
-        await this.sendDefinition(
-          command.message.chat.id,
-          await UrbanApi.random(),
-          0,
-        );
+        await this.sendDefinition(command.message.chat.id, await UrbanApi.random(), 0);
         break;
       case "help":
         await this.sendHelp(command.message.chat);
         break;
       default:
-        if (
-          adminId != null &&
-          command.message.from?.id.toString() === adminId
-        ) {
+        if (adminId != null && command.message.from?.id.toString() === adminId) {
           await this.handleAdminCommand(command);
         } else {
           await this.sendHelp(command.message.chat);
@@ -413,4 +385,8 @@ export class UdBot extends TelegramBot {
         break;
     }
   }
+}
+
+function formatPositional(template: string, ...args: unknown[]): string {
+  return template.replace(/\{(\d+)\}/g, (_, i) => String(args[Number(i)] ?? ""));
 }

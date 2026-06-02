@@ -1,8 +1,8 @@
-import { UdDefinition } from "./urban-api/ud-definition";
-import { CallbackQuery, InlineKeyboardMarkup } from "node-telegram-bot-api";
-import UrbanApi from "./urban-api";
+import { UdDefinition } from "./definition";
+import type { CallbackQuery, InlineKeyboardMarkup } from "../../shared/telegram/types";
+import UrbanApi from "./api";
 import formatter from "./formatter";
-import { channelLink } from "./config";
+import { channelLink } from "../../config";
 
 export default {
   buildFromDefinition(buttonResponse?: UdButtonResponse): InlineKeyboardMarkup {
@@ -18,8 +18,6 @@ export default {
     if (buttonResponse) {
       const { definitions: defs, position: pos, term } = buttonResponse;
 
-      // Todo refactor
-      // eslint-disable-next-line no-inner-declarations
       function callbackData(position: number): string {
         return defs.length > 1
           ? formatter.compress(`${term}_${position}`)
@@ -55,16 +53,12 @@ export default {
       url: formatter.startUrl(word),
     };
 
-    const keyboard: InlineKeyboardMarkup = {
+    return {
       inline_keyboard: [[redirectButton]],
     };
-
-    return keyboard;
   },
 
-  async parseButtonClick(
-    callbackQuery: CallbackQuery
-  ): Promise<UdButtonResponse> {
+  async parseButtonClick(callbackQuery: CallbackQuery): Promise<UdButtonResponse> {
     if (callbackQuery.data == null) {
       throw new Error("Callback query has no data");
     }
@@ -80,11 +74,7 @@ export default {
     const pos: number = parseInt(word.substring(splitterPosition + 1), 10);
     const definitions = await UrbanApi.defineTerm(term);
 
-    return {
-      term,
-      definitions: definitions,
-      position: pos,
-    };
+    return { term, definitions, position: pos };
   },
 };
 

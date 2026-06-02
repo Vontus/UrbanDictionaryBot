@@ -1,5 +1,5 @@
-import encode from "../encoder";
-import formatter from "../formatter";
+import encode from "./encoder";
+import formatter from "./formatter";
 
 const wordLinkRegex = /\[([^[\]]+)\]/g;
 
@@ -16,7 +16,6 @@ export class UdDefinition {
   formattedExample: string;
   gif: string | undefined;
 
-  // todo use something like zod to validate the json object
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(jsonObject: any) {
     this.defId = jsonObject.defid;

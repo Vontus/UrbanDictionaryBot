@@ -1,6 +1,5 @@
 import * as Fs from "fs";
-import * as format from "string-template";
-import { UdDefinition } from "./urban-api/ud-definition";
+import { UdDefinition } from "./definition";
 
 const definitionTemplate = readTemplate("definition");
 const channelPostTemplate = readTemplate("channel-post");
@@ -21,8 +20,10 @@ export default {
 };
 
 function readTemplate(name: string): string {
-  return Fs.readFileSync(
-    `./resources/templates/${name}.txt`,
-    "utf8",
-  ).toString();
+  return Fs.readFileSync(`./resources/templates/${name}.txt`, "utf8").toString();
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function format(template: string, data: any): string {
+  return template.replace(/\{(\w+)\}/g, (_, k) => String(data[k] ?? ""));
 }

@@ -1,4 +1,4 @@
-import { Message } from "node-telegram-bot-api";
+import type { Message } from "./shared/telegram/types";
 import logger from "./logger";
 
 export class BotCommand {
