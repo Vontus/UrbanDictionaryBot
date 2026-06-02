@@ -5,13 +5,15 @@ const cleanUrl = "https://www.urbandictionary.com";
 const defineUrl = `${cleanUrl}/define.php`;
 
 function scrapeDefinition(htmlElement: cheerio.Element): UdDefinition {
-  const permalink = $(htmlElement).find(".word").attr("href");
+  const word = $(htmlElement).attr("data-word") as string;
+  const defid = $(htmlElement).attr("data-defid");
+  const permalink = `/define.php?term=${encodeURIComponent(word)}${defid ? `&defid=${defid}` : ""}`;
   const def = {
     defid: $(htmlElement).data("defid"),
     definition: replaceLinks($(htmlElement).find(".meaning")),
     example: replaceLinks($(htmlElement).find(".example")),
-    permalink: permalink != null ? `${cleanUrl}${permalink}` : null,
-    author: $(htmlElement).find(".contributor a").text(),
+    permalink: `${cleanUrl}${permalink}`,
+    author: $(htmlElement).find('a[data-grow-track="ui.click_author"]').text(),
     word: $(htmlElement).find(".word").text(),
     gif: $(htmlElement).find(".gif img").attr("src"),
   };
@@ -47,19 +49,18 @@ export async function searchTerm(term: string): Promise<UdDefinition[]> {
     return [];
   }
 
-  const lastPageLink = $(".pagination li:last-child a").attr("href");
   let pages = 1;
-  if (lastPageLink != null) {
-    pages = parseInt(lastPageLink?.substr(lastPageLink.lastIndexOf("=") + 1));
-  }
+  $('a[href*="page="]', html).each((_index, el) => {
+    const href = $(el).attr("href") ?? "";
+    const m = href.match(/[?&]page=(\d+)/);
+    if (m) pages = Math.max(pages, parseInt(m[1]));
+  });
 
   for (let page = 1; page <= pages && defs.length < 10; page++) {
     const pageHtml = page === 1 ? html : await requestWeb(page, term);
 
-    $(".def-panel", pageHtml).each((_index, element) => {
-      if (!$(element).find(".ribbon").text().includes("Word of the Day")) {
-        defs.push(scrapeDefinition(element));
-      }
+    $(".definition", pageHtml).each((_index, element) => {
+      defs.push(scrapeDefinition(element));
     });
   }
 
