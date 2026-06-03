@@ -18,11 +18,8 @@ export default {
     if (buttonResponse) {
       const { definitions: defs, position: pos, term } = buttonResponse;
 
-      function callbackData(position: number): string {
-        return defs.length > 1
-          ? formatter.compress(`${term}_${position}`)
-          : "ignore";
-      }
+      const callbackData = (position: number): string =>
+        defs.length > 1 ? formatter.compress(`${term}_${position}`) : "ignore";
 
       const navigationButtons = [
         {

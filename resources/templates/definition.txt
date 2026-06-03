@@ -1,9 +1,7 @@
-<b>{word}</b> by <a href="http://www.urbandictionary.com/author.php?author={author}">{author}</a>
+<a href="{permalink}"><b>{word}</b></a> by <a href="http://www.urbandictionary.com/author.php?author={author}">{author}</a>
 
-ℹ️ <b>Description</b>
+ℹ️
 {formattedDefinition}
 
-📌 <b>Examples</b>
+📌
 {formattedExample}
-
-<a href="{permalink}">Source</a>
