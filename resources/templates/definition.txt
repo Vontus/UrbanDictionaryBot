@@ -1,4 +1,4 @@
-<a href="{permalink}"><b>{word}</b></a>
+<a href="{permalink}"><b>{word}</b></a> by <i>{author}</i>
 
 ℹ️
 {formattedDefinition}
