@@ -13,7 +13,6 @@ function scrapeDefinition(htmlElement: cheerio.Element): UdDefinition {
     definition: replaceLinks($(htmlElement).find(".meaning")),
     example: replaceLinks($(htmlElement).find(".example")),
     permalink: `${cleanUrl}${permalink}`,
-    author: $(htmlElement).find('a[data-grow-track="ui.click_author"]').text(),
     word: $(htmlElement).find(".word").text(),
     gif: $(htmlElement).find(".gif img").attr("src"),
   };

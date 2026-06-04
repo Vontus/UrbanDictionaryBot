@@ -1,4 +1,4 @@
-<a href="{permalink}"><b>{word}</b></a> by <a href="http://www.urbandictionary.com/author.php?author={author}">{author}</a>
+<a href="{permalink}"><b>{word}</b></a>
 
 ℹ️
 {formattedDefinition}

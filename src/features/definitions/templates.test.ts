@@ -24,9 +24,8 @@ function makeDefinition(overrides: {
     permalink:
       overrides.permalink ??
       "https://www.urbandictionary.com/define.php?term=test",
-    author: "author",
     gif: undefined,
-    formatLinks: () => "",
+    stripBrackets: () => "",
   } as unknown as UdDefinition;
 }
 

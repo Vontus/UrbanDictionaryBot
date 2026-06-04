@@ -8,7 +8,7 @@ const TRUNCATION_MARGIN = 100; // safety buffer + room for the "Read more" suffi
 const definitionTemplate = readTemplate("definition");
 
 export default {
-  definition(data: Pick<UdDefinition, "permalink" | "word" | "author" | "formattedDefinition" | "formattedExample">): string {
+  definition(data: Pick<UdDefinition, "permalink" | "word" | "formattedDefinition" | "formattedExample">): string {
     return format(definitionTemplate, data);
   },
 };
