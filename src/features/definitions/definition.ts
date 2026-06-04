@@ -24,24 +24,11 @@ export class UdDefinition {
     this.example = encode(jsonObject.example);
     this.gif = jsonObject.gif;
 
-    this.formattedDefinition = this.formatLinks(this.definition);
-    this.formattedExample = formatter.italic(
-      this.formatLinks(
-        this.example,
-        formatter.ITALIC_CLOSE_TAG,
-        formatter.ITALIC_OPEN_TAG,
-      ),
-    );
+    this.formattedDefinition = this.stripBrackets(this.definition);
+    this.formattedExample = formatter.italic(this.stripBrackets(this.example));
   }
 
-  formatLinks(text: string, prefix?: string, suffix?: string): string {
-    return text.replace(wordLinkRegex, (match) => {
-      const word = match.slice(1, -1);
-      return (
-        (prefix ?? "") +
-        formatter.link(word, formatter.startUrl(word)) +
-        (suffix ?? "")
-      );
-    });
+  stripBrackets(text: string): string {
+    return text.replace(wordLinkRegex, (match) => match.slice(1, -1));
   }
 }

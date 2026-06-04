@@ -10,7 +10,7 @@ export default {
       type: "article",
       title: definition.word,
       id: definition.defId.toString(),
-      description: definition.definition,
+      description: definition.formattedDefinition,
       reply_markup: keyboards.inlineKeyboardResponse(definition.word),
       input_message_content: {
         message_text: buildDefinitionText(definition, inlineCharacterLimit),
