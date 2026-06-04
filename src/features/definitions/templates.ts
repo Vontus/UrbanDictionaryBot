@@ -13,13 +13,13 @@ export default {
   },
 };
 
-export function buildDefinitionText(definition: UdDefinition): string {
+export function buildDefinitionText(definition: UdDefinition, limit = messageCharacterLimit): string {
   const full = format(definitionTemplate, definition);
-  if (full.length <= messageCharacterLimit) return full;
+  if (full.length <= limit) return full;
 
   const readMore = ` <a href="${definition.permalink}">Read more</a>`;
   const shell = format(definitionTemplate, { ...definition, formattedDefinition: "", formattedExample: "" });
-  const available = messageCharacterLimit - shell.length - TRUNCATION_MARGIN;
+  const available = limit - shell.length - TRUNCATION_MARGIN;
   const half = Math.floor(available / 2);
 
   // Each field gets the space the other doesn't use, guaranteed at least half

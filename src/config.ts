@@ -14,6 +14,7 @@ const env = z
     DATA_PATH: z.string().default("./data/"),
     MAX_CHANNEL_DEFS: z.coerce.number().int().positive().default(10),
     MESSAGE_CHARACTER_LIMIT: z.coerce.number().int().positive().default(4096),
+    INLINE_CHARACTER_LIMIT: z.coerce.number().int().positive().default(1200),
   })
   .parse(process.env);
 
@@ -29,3 +30,4 @@ export const channelLink = env.CHANNEL_LINK;
 export const dataPath = env.DATA_PATH;
 export const maxChannelDefs = env.MAX_CHANNEL_DEFS;
 export const messageCharacterLimit = env.MESSAGE_CHARACTER_LIMIT;
+export const inlineCharacterLimit = env.INLINE_CHARACTER_LIMIT;

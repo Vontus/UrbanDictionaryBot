@@ -99,4 +99,11 @@ describe("buildMessageText", () => {
     const result = buildDefinitionText(makeDefinition({ formattedDefinition: longDefinition, permalink }));
     expect(result).toContain(`href="${permalink}"`);
   });
+
+  it("respects a custom limit passed as second argument", () => {
+    const longDefinition = repeat("word ", 300); // ~1500 chars — under 4096 but over 1200
+    const result = buildDefinitionText(makeDefinition({ formattedDefinition: longDefinition }), 1200);
+    expect(result.length).toBeLessThanOrEqual(1200);
+    expect(result).toContain("Read more");
+  });
 });

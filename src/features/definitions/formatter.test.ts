@@ -53,6 +53,21 @@ describe("formatter", () => {
       expect(truncateHtml(text, 50, "...")).not.toMatch(/<[^>]*$/);
     });
 
+    it("closes unclosed tags when truncation cuts before the closing tag", () => {
+      const text = '<i>word word word word word word word word word word word word word word</i>';
+      const result = truncateHtml(text, 30, "...");
+      // The <i> tag must be closed even though the closing </i> was cut off
+      expect(result).toContain("</i>");
+      expect(result).not.toMatch(/<[^>]*$/);
+    });
+
+    it("closes an unclosed <a> tag when truncation cuts inside its content", () => {
+      // Opening tag (30 chars) + "before " (7) = 37 chars; maxLength 55 ensures it fits before the cut
+      const text = 'before <a href="https://example.com">linked word here and more</a> after';
+      const result = truncateHtml(text, 55, "...");
+      expect(result).toContain("</a>");
+    });
+
     it("handles text with no spaces gracefully", () => {
       const result = truncateHtml("x".repeat(100), 20, "...");
       expect(result.length).toBeLessThanOrEqual(20);
