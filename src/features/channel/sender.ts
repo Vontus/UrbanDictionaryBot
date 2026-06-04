@@ -25,7 +25,7 @@ export async function sendWord(
 
   const msgOpts = { parse_mode: "HTML" as const, disable_web_page_preview: true };
   const promises: Array<Promise<unknown>> = [
-    client.sendMessage(chatId, templates.channelPost(defToSend), msgOpts),
+    client.sendMessage(chatId, templates.definition(defToSend) + "\n\n#WordOfTheDay", msgOpts),
   ];
 
   if (saveWotd) {
