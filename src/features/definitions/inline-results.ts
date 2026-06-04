@@ -1,30 +1,13 @@
 import type { InlineQueryResultArticle } from "../../shared/telegram/types";
 import type { UdDefinition } from "./definition";
 import keyboards from "./keyboards";
+import { truncateHtml } from "./formatter";
 import { messageCharacterLimit } from "../../config";
 
 const TRUNCATION_MARGIN = 100; // safety buffer + room for the "Read more" suffix
 
 function renderMessage(word: string, definition: string, example: string): string {
   return `️ℹ️ <b>Definition of ${word}</b>\n${definition}\n\n📌 <b>Examples</b>\n${example}\n`;
-}
-
-export function truncateHtml(text: string, maxLength: number, suffix: string): string {
-  if (text.length <= maxLength) return text;
-
-  const targetLength = maxLength - suffix.length;
-  let sliced = text.slice(0, Math.max(0, targetLength));
-
-  // Back up to the last word boundary
-  const lastSpace = sliced.lastIndexOf(" ");
-  if (lastSpace > 0) {
-    sliced = sliced.slice(0, lastSpace);
-  }
-
-  // Drop any incomplete HTML tag (e.g. a "<a href=" cut mid-attribute)
-  sliced = sliced.replace(/<[^>]*$/, "");
-
-  return sliced.trimEnd() + suffix;
 }
 
 export function buildMessageText(definition: UdDefinition): string {

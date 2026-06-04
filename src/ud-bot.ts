@@ -1,10 +1,9 @@
 import { Cron } from "croner";
 
 import UrbanApi from "./features/definitions/api";
-import templates from "./features/definitions/templates";
 import keyboards from "./features/definitions/keyboards";
 import inlineResults from "./features/definitions/inline-results";
-import formatter from "./features/definitions/formatter";
+import formatter, { truncateHtml } from "./features/definitions/formatter";
 import encode from "./features/definitions/encoder";
 import { UdDefinition } from "./features/definitions/definition";
 import { isArabic } from "./util";
@@ -33,6 +32,12 @@ import { TelegramClient } from "./shared/telegram/client";
 import type { SendMessageOptions, EditMessageTextOptions } from "./shared/telegram/client";
 import type { Message, Chat, CallbackQuery, InlineQuery, ChosenInlineResult } from "./shared/telegram/types";
 import type { UpdateHandlers } from "./shared/telegram/router";
+
+const DEFINITION_TRUNCATION_MARGIN = 100; // safety buffer + room for the "Read more" suffix
+
+function renderDefinition(definition: UdDefinition, formattedDefinition: string, formattedExample: string): string {
+  return `<a href="${definition.permalink}"><b>${definition.word}</b></a> by <a href="http://www.urbandictionary.com/author.php?author=${definition.author}">${definition.author}</a>\n\nℹ️\n${formattedDefinition}\n\n📌\n${formattedExample}\n`;
+}
 
 export class UdBot {
   constructor(private client: TelegramClient) {
@@ -215,14 +220,24 @@ export class UdBot {
     await this.client.answerCallbackQuery(callbackQuery.id, { text });
   }
 
-  buildDefinition(def: UdDefinition): string {
-    let definitionString = templates.definition(def);
+  buildDefinition(definition: UdDefinition): string {
+    const full = renderDefinition(definition, definition.formattedDefinition, definition.formattedExample);
+    if (full.length <= messageCharacterLimit) return full;
 
-    if (definitionString.length > messageCharacterLimit) {
-      definitionString = formatPositional(strings.definitionTooLong, def.permalink);
-    }
+    const readMore = ` <a href="${definition.permalink}">Read more</a>`;
+    const shell = renderDefinition(definition, "", "");
+    const available = messageCharacterLimit - shell.length - DEFINITION_TRUNCATION_MARGIN;
+    const half = Math.floor(available / 2);
 
-    return definitionString;
+    // Each field gets the space the other doesn't use, guaranteed at least half
+    const definitionBudget = available - Math.min(definition.formattedExample.length, half);
+    const exampleBudget    = available - Math.min(definition.formattedDefinition.length, half);
+
+    return renderDefinition(
+      definition,
+      truncateHtml(definition.formattedDefinition, definitionBudget, `...${readMore}`),
+      truncateHtml(definition.formattedExample, exampleBudget, `...${readMore}`),
+    );
   }
 
   async sendDefinition(

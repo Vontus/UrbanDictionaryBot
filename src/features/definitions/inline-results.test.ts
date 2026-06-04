@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { truncateHtml, buildMessageText } from "./inline-results";
+import { buildMessageText } from "./inline-results";
 import type { UdDefinition } from "./definition";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -31,53 +31,6 @@ function makeDefinition(overrides: {
 }
 
 const TELEGRAM_LIMIT = 4096;
-
-// ─── truncateHtml ────────────────────────────────────────────────────────────
-
-describe("truncateHtml", () => {
-  it("returns text unchanged when shorter than maxLength", () => {
-    expect(truncateHtml("hello world", 100, "...")).toBe("hello world");
-  });
-
-  it("returns text unchanged when exactly at maxLength", () => {
-    const text = repeat("a", 50);
-    expect(truncateHtml(text, 50, "...")).toBe(text);
-  });
-
-  it("truncates plain text and appends suffix", () => {
-    const text = repeat("a ", 100); // 200 chars
-    const result = truncateHtml(text, 50, "...");
-    expect(result.length).toBeLessThanOrEqual(50);
-    expect(result.endsWith("...")).toBe(true);
-  });
-
-  it("backs up to the last word boundary", () => {
-    // "aaa bbb ccc" truncated to 9 chars with "..." suffix → target=6 → "aaa bb" → back to "aaa"
-    const result = truncateHtml("aaa bbb ccc", 9, "...");
-    expect(result).toBe("aaa...");
-  });
-
-  it("removes an incomplete HTML tag at the truncation point", () => {
-    const text = "some text <a href=\"https://example.com\">link</a> more text here now";
-    const result = truncateHtml(text, 20, "...");
-    expect(result).not.toMatch(/<[^>]*$/);
-    expect(result.length).toBeLessThanOrEqual(20);
-  });
-
-  it("preserves a complete HTML tag that fits within the budget", () => {
-    const link = '<a href="https://x.com">word</a>';
-    const text = `before ${link} after that we have more words that push past the limit here`;
-    const result = truncateHtml(text, 50, "...");
-    expect(result).not.toMatch(/<[^>]*$/);
-  });
-
-  it("handles text with no spaces gracefully", () => {
-    const text = repeat("x", 100);
-    const result = truncateHtml(text, 20, "...");
-    expect(result.length).toBeLessThanOrEqual(20);
-    expect(result.endsWith("...")).toBe(true);
-  });
-});
 
 // ─── buildMessageText ────────────────────────────────────────────────────────
 
