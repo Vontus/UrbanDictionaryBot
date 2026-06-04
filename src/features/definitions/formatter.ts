@@ -47,3 +47,21 @@ export default {
     return compresser.decompressFromBase64(text);
   },
 };
+
+export function truncateHtml(text: string, maxLength: number, suffix: string): string {
+  if (text.length <= maxLength) return text;
+
+  const targetLength = maxLength - suffix.length;
+  let sliced = text.slice(0, Math.max(0, targetLength));
+
+  // Back up to the last word boundary
+  const lastSpace = sliced.lastIndexOf(" ");
+  if (lastSpace > 0) {
+    sliced = sliced.slice(0, lastSpace);
+  }
+
+  // Drop any incomplete HTML tag (e.g. a "<a href=" cut mid-attribute)
+  sliced = sliced.replace(/<[^>]*$/, "");
+
+  return sliced.trimEnd() + suffix;
+}
