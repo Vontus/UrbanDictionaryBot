@@ -1,5 +1,0 @@
-️ℹ️ <b>Definition of {word}</b>
-{formattedDefinition}
-
-📌 <b>Examples</b>
-{formattedExample}

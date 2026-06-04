@@ -2,20 +2,10 @@ import * as Fs from "fs";
 import { UdDefinition } from "./definition";
 
 const definitionTemplate = readTemplate("definition");
-const channelPostTemplate = readTemplate("channel-post");
-const inlineDefinitionTemplate = readTemplate("inline-definition");
 
 export default {
   definition(data: Pick<UdDefinition, "permalink" | "word" | "author" | "formattedDefinition" | "formattedExample">): string {
     return format(definitionTemplate, data);
-  },
-
-  channelPost(data: UdDefinition): string {
-    return format(channelPostTemplate, data);
-  },
-
-  inlineDefinition(data: UdDefinition): string {
-    return format(inlineDefinitionTemplate, data);
   },
 };
 

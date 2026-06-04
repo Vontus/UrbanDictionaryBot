@@ -1,21 +1,18 @@
 import type { InlineQueryResultArticle } from "../../shared/telegram/types";
 import type { UdDefinition } from "./definition";
+import templates from "./templates";
 import keyboards from "./keyboards";
 import { truncateHtml } from "./formatter";
 import { messageCharacterLimit } from "../../config";
 
 const TRUNCATION_MARGIN = 100; // safety buffer + room for the "Read more" suffix
 
-function renderMessage(word: string, definition: string, example: string): string {
-  return `️ℹ️ <b>Definition of ${word}</b>\n${definition}\n\n📌 <b>Examples</b>\n${example}\n`;
-}
-
 export function buildMessageText(definition: UdDefinition): string {
-  const full = renderMessage(definition.word, definition.formattedDefinition, definition.formattedExample);
+  const full = templates.definition(definition);
   if (full.length <= messageCharacterLimit) return full;
 
   const readMore = ` <a href="${definition.permalink}">Read more</a>`;
-  const shell = renderMessage(definition.word, "", "");
+  const shell = templates.definition({ ...definition, formattedDefinition: "", formattedExample: "" });
   const available = messageCharacterLimit - shell.length - TRUNCATION_MARGIN;
   const half = Math.floor(available / 2);
 
@@ -23,11 +20,11 @@ export function buildMessageText(definition: UdDefinition): string {
   const definitionBudget = available - Math.min(definition.formattedExample.length, half);
   const exampleBudget    = available - Math.min(definition.formattedDefinition.length, half);
 
-  return renderMessage(
-    definition.word,
-    truncateHtml(definition.formattedDefinition, definitionBudget, `...${readMore}`),
-    truncateHtml(definition.formattedExample, exampleBudget, `...${readMore}`),
-  );
+  return templates.definition({
+    ...definition,
+    formattedDefinition: truncateHtml(definition.formattedDefinition, definitionBudget, `...${readMore}`),
+    formattedExample: truncateHtml(definition.formattedExample, exampleBudget, `...${readMore}`),
+  });
 }
 
 export default {
