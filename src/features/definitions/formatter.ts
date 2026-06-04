@@ -63,5 +63,28 @@ export function truncateHtml(text: string, maxLength: number, suffix: string): s
   // Drop any incomplete HTML tag (e.g. a "<a href=" cut mid-attribute)
   sliced = sliced.replace(/<[^>]*$/, "");
 
+  // Close any tags that were opened but not closed before the cut point
+  sliced = closeUnclosedTags(sliced);
+
   return sliced.trimEnd() + suffix;
+}
+
+function closeUnclosedTags(html: string): string {
+  const openTags: string[] = [];
+  const tagPattern = /<\/?([a-zA-Z]+)[^>]*>/g;
+  let match;
+
+  while ((match = tagPattern.exec(html)) !== null) {
+    const isClosing = match[0].startsWith("</");
+    const tagName = match[1].toLowerCase();
+
+    if (isClosing) {
+      const lastOpen = openTags.lastIndexOf(tagName);
+      if (lastOpen !== -1) openTags.splice(lastOpen, 1);
+    } else {
+      openTags.push(tagName);
+    }
+  }
+
+  return html + openTags.reverse().map((tag) => `</${tag}>`).join("");
 }
