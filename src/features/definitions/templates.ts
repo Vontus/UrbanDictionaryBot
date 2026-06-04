@@ -6,7 +6,7 @@ const channelPostTemplate = readTemplate("channel-post");
 const inlineDefinitionTemplate = readTemplate("inline-definition");
 
 export default {
-  definition(data: UdDefinition): string {
+  definition(data: Pick<UdDefinition, "permalink" | "word" | "author" | "formattedDefinition" | "formattedExample">): string {
     return format(definitionTemplate, data);
   },
 

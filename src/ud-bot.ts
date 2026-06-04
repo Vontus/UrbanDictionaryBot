@@ -1,6 +1,7 @@
 import { Cron } from "croner";
 
 import UrbanApi from "./features/definitions/api";
+import templates from "./features/definitions/templates";
 import keyboards from "./features/definitions/keyboards";
 import inlineResults from "./features/definitions/inline-results";
 import formatter, { truncateHtml } from "./features/definitions/formatter";
@@ -34,10 +35,6 @@ import type { Message, Chat, CallbackQuery, InlineQuery, ChosenInlineResult } fr
 import type { UpdateHandlers } from "./shared/telegram/router";
 
 const DEFINITION_TRUNCATION_MARGIN = 100; // safety buffer + room for the "Read more" suffix
-
-function renderDefinition(definition: UdDefinition, formattedDefinition: string, formattedExample: string): string {
-  return `<a href="${definition.permalink}"><b>${definition.word}</b></a> by <a href="http://www.urbandictionary.com/author.php?author=${definition.author}">${definition.author}</a>\n\nℹ️\n${formattedDefinition}\n\n📌\n${formattedExample}\n`;
-}
 
 export class UdBot {
   constructor(private client: TelegramClient) {
@@ -221,11 +218,11 @@ export class UdBot {
   }
 
   buildDefinition(definition: UdDefinition): string {
-    const full = renderDefinition(definition, definition.formattedDefinition, definition.formattedExample);
+    const full = templates.definition(definition);
     if (full.length <= messageCharacterLimit) return full;
 
     const readMore = ` <a href="${definition.permalink}">Read more</a>`;
-    const shell = renderDefinition(definition, "", "");
+    const shell = templates.definition({ ...definition, formattedDefinition: "", formattedExample: "" });
     const available = messageCharacterLimit - shell.length - DEFINITION_TRUNCATION_MARGIN;
     const half = Math.floor(available / 2);
 
@@ -233,11 +230,11 @@ export class UdBot {
     const definitionBudget = available - Math.min(definition.formattedExample.length, half);
     const exampleBudget    = available - Math.min(definition.formattedDefinition.length, half);
 
-    return renderDefinition(
-      definition,
-      truncateHtml(definition.formattedDefinition, definitionBudget, `...${readMore}`),
-      truncateHtml(definition.formattedExample, exampleBudget, `...${readMore}`),
-    );
+    return templates.definition({
+      ...definition,
+      formattedDefinition: truncateHtml(definition.formattedDefinition, definitionBudget, `...${readMore}`),
+      formattedExample: truncateHtml(definition.formattedExample, exampleBudget, `...${readMore}`),
+    });
   }
 
   async sendDefinition(
