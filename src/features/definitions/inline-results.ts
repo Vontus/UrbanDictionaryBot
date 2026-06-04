@@ -1,18 +1,62 @@
 import type { InlineQueryResultArticle } from "../../shared/telegram/types";
-import { UdDefinition } from "./definition";
-import templates from "./templates";
+import type { UdDefinition } from "./definition";
 import keyboards from "./keyboards";
+import { messageCharacterLimit } from "../../config";
+
+const TRUNCATION_MARGIN = 100; // safety buffer + room for the "Read more" suffix
+
+function renderMessage(word: string, definition: string, example: string): string {
+  return `️ℹ️ <b>Definition of ${word}</b>\n${definition}\n\n📌 <b>Examples</b>\n${example}\n`;
+}
+
+export function truncateHtml(text: string, maxLength: number, suffix: string): string {
+  if (text.length <= maxLength) return text;
+
+  const targetLength = maxLength - suffix.length;
+  let sliced = text.slice(0, Math.max(0, targetLength));
+
+  // Back up to the last word boundary
+  const lastSpace = sliced.lastIndexOf(" ");
+  if (lastSpace > 0) {
+    sliced = sliced.slice(0, lastSpace);
+  }
+
+  // Drop any incomplete HTML tag (e.g. a "<a href=" cut mid-attribute)
+  sliced = sliced.replace(/<[^>]*$/, "");
+
+  return sliced.trimEnd() + suffix;
+}
+
+export function buildMessageText(definition: UdDefinition): string {
+  const full = renderMessage(definition.word, definition.formattedDefinition, definition.formattedExample);
+  if (full.length <= messageCharacterLimit) return full;
+
+  const readMore = ` <a href="${definition.permalink}">Read more</a>`;
+  const shell = renderMessage(definition.word, "", "");
+  const available = messageCharacterLimit - shell.length - TRUNCATION_MARGIN;
+  const half = Math.floor(available / 2);
+
+  // Each field gets the space the other doesn't use, guaranteed at least half
+  const definitionBudget = available - Math.min(definition.formattedExample.length, half);
+  const exampleBudget    = available - Math.min(definition.formattedDefinition.length, half);
+
+  return renderMessage(
+    definition.word,
+    truncateHtml(definition.formattedDefinition, definitionBudget, `...${readMore}`),
+    truncateHtml(definition.formattedExample, exampleBudget, `...${readMore}`),
+  );
+}
 
 export default {
   getResults(definitions: UdDefinition[]): InlineQueryResultArticle[] {
-    return definitions.map((def) => ({
+    return definitions.map((definition) => ({
       type: "article",
-      title: def.word,
-      id: def.defId.toString(),
-      description: def.definition,
-      reply_markup: keyboards.inlineKeyboardResponse(def.word),
+      title: definition.word,
+      id: definition.defId.toString(),
+      description: definition.definition,
+      reply_markup: keyboards.inlineKeyboardResponse(definition.word),
       input_message_content: {
-        message_text: templates.inlineDefinition(def),
+        message_text: buildMessageText(definition),
         parse_mode: "HTML" as const,
         disable_web_page_preview: true,
       },
