@@ -7,9 +7,7 @@
     {
       "name": "Attach to node",
       "type": "node",
-      "protocol": "inspector",
       "request": "attach",
-      "stopOnEntry": false,
       "restart": true,
       "localRoot": "${workspaceRoot}",
       "remoteRoot": "/usr/src/app",
