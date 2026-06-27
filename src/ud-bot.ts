@@ -259,12 +259,19 @@ export class UdBot {
   }
 
   async logToTelegram(message: string, moreInfo?: unknown): Promise<void> {
-    if (logChatId != null) {
-      let msg = message;
-      if (moreInfo != null) {
-        msg += "\n\n" + JSON.stringify(moreInfo);
-      }
+    if (logChatId == null) return;
+    let msg = message;
+    if (moreInfo != null) {
+      msg += "\n\n" + JSON.stringify(moreInfo);
+    }
+    // Reporting an error must never become a new error: if Telegram is down,
+    // fall back to the local logger instead of throwing (which would surface
+    // as an unhandled rejection and crash the process). See issue #56.
+    try {
       await this.client.sendMessage(logChatId, msg);
+    } catch (err) {
+      logger.error("Failed to log to Telegram:", err);
+      logger.error("Original message:", msg);
     }
   }
 
