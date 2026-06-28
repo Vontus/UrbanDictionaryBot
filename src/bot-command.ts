@@ -19,12 +19,12 @@ export class BotCommand {
 
     if (hasArgs) {
       const argsIndex = firstSpaceIndex + 1;
-      this.fullArgs = txt.substr(argsIndex);
+      this.fullArgs = txt.substring(argsIndex);
       this.args = this.fullArgs.split(" ");
     }
 
     this.label = txt
-      .substr(1, hasArgs ? firstSpaceIndex - 1 : undefined)
+      .substring(1, hasArgs ? firstSpaceIndex : undefined)
       .toLowerCase();
     this.message = mess;
   }
