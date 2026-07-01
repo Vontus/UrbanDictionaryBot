@@ -1,5 +1,6 @@
 lib/
 dist/
+.claude/
 coverage/
 node_modules/
 .env
