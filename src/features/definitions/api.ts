@@ -1,6 +1,7 @@
 import { UdDefinition } from "./definition";
 import { DefinitionCache } from "./cache";
 import { searchTerm } from "./scraper";
+import { udApiResponseSchema } from "./ud-api-schema";
 import { UdApiNotAvailableError } from "../../exceptions/UdApiNotAvailableError";
 import logger from "../../logger";
 
@@ -46,6 +47,9 @@ async function udRequest(method: string, params?: Record<string, string>): Promi
   }
   const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error(`UD API error: ${res.status}`);
-  const data = (await res.json()) as { list?: unknown[] };
-  return (data.list ?? []).map((item) => new UdDefinition(item));
+  const parsed = udApiResponseSchema.safeParse(await res.json());
+  if (!parsed.success) {
+    throw new Error(`UD API returned invalid data: ${parsed.error.message}`);
+  }
+  return parsed.data.list.map((item) => new UdDefinition(item));
 }
